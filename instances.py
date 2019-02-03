@@ -9,9 +9,9 @@ import urllib.request
 import zipfile
 
 class Environment:
-    configFilePath = '{}/.xwenv/config/config.json'.format(os.getcwd())
-    dataDir = '{}/.xwenv/versions'.format(os.getcwd())
-    instancesDir = '{}/.xwenv/instances'.format(os.getcwd())
+    configFilePath = '{}/config/config.json'.format(os.getcwd())
+    dataDir = '{}/versions'.format(os.getcwd())
+    instancesDir = '{}/instances'.format(os.getcwd())
 
 class ConfigManager:
     logger = logging.getLogger('ConfigManager')
