@@ -2,8 +2,6 @@
 import argparse
 import logging
 
-import config.environment
-
 from configuration import ConfigManager
 from instances import InstanceManager
 from versions import VersionManager
