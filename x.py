@@ -7,11 +7,28 @@ from instances import InstanceManager
 from versions import VersionManager
 from utils import initRootLogger
 
-rootParser = argparse.ArgumentParser(description='Provide a set of tools to manage local XWiki installations')
-rootParser.add_argument('--verbose', '-v', action='count', default=0, help='enable verbose logs')
-rootParser.add_argument('--debug', '-d', action='store_true', help='If an XWiki instance is to be started, start it in debug mode')
-rootParser.add_argument('action', help='the action to perform')
-rootParser.add_argument('parameters', default=[], nargs='+', help='the action parameters')
+rootParser = argparse.ArgumentParser(prog='x', description='Provide a set of tools to manage local XWiki installations')
+rootParser.add_argument('-v', '--verbose', action='count', default=0, help='enable verbose logs')
+
+subParsers = rootParser.add_subparsers(dest='action', required=True, help='the action to perform')
+
+listParser = subParsers.add_parser('list', help='list the managed entities')
+listParser.add_argument('entity', help='the type of entity to list')
+
+downloadParser = subParsers.add_parser('download', help='download a new version')
+downloadParser.add_argument('version', help='the XWiki version to download')
+
+createParser = subParsers.add_parser('create', help='create a new instance')
+createParser.add_argument('instance_name', help='the name of the instance to create')
+createParser.add_argument('version', help='the XWiki version to use in the instance')
+
+startParser = subParsers.add_parser('start', help='start an instance')
+startParser.add_argument('instance_name', help='the name of the instance to start')
+startParser.add_argument('-d', '--debug', action='store_true', help='toggle debug mode')
+
+removeParser = subParsers.add_parser('remove', help='remove an entity')
+removeParser.add_argument('instance_name', help='the name of the instnace to remove')
+
 args = rootParser.parse_args()
 
 initRootLogger(args.verbose)
@@ -22,31 +39,16 @@ vm = VersionManager(cm)
 im = InstanceManager(cm, vm)
 
 logger.debug('Arguments : {}'.format(args))
-logger.debug('Action : {}'.format(args.action))
-logger.debug('Parameters : {}'.format(args.parameters))
 if ('list'.startswith(args.action)):
-    if ('versions'.startswith(args.parameters[0])):
+    if ('versions'.startswith(args.entity)):
       print(cm.versions())
-    elif ('instances'.startswith(args.parameters[0])):
+    elif ('instances'.startswith(args.entity)):
       print(cm.instances())
 elif ('download'.startswith(args.action)):
-    if (len(args.parameters) == 0):
-        logger.error('No version provided')
-    else:
-        for version in args.parameters:
-            vm.download(version)
+    vm.download(args.version)
 elif ('create'.startswith(args.action)):
-    if (len(args.parameters) < 2):
-        logger.error('You should provide the instance name and the instance version.')
-    else:
-        im.create(args.parameters[0], args.parameters[1])
+    im.create(args.instance_name, args.version)
 elif ('start'.startswith(args.action)):
-    if (len(args.parameters) == 0):
-        logger.error('No instance provided')
-    else:
-        im.start(args.parameters[0], args.debug)
+    im.start(args.instnace_name, args.debug)
 elif ('remove'.startswith(args.action)):
-    if (len(args.parameters) == 0):
-        logger.error('You should provide the instance name.')
-    else:
-        im.remove(args.parameters[0])
+    im.remove(args.instance_name)
