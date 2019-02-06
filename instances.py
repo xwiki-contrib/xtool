@@ -1,111 +1,14 @@
 import json
 import logging
 import os
-import os.path
 import shutil
 import subprocess
-import urllib.error
-import urllib.request
 import zipfile
 
-class Environment:
-    configFilePath = '{}/config/config.json'.format(os.getcwd())
-    dataDir = '{}/versions'.format(os.getcwd())
-    instancesDir = '{}/instances'.format(os.getcwd())
+from configuration import ConfigManager
+from configuration import Environment
 
-class ConfigManager:
-    logger = logging.getLogger('ConfigManager')
-
-    def __init__(self):
-        # Load the configuration content
-        self.__loadConfig()
-
-    def __loadConfig(self):
-        baseConfigDir = os.path.dirname(Environment.configFilePath)
-
-        if not os.path.exists(baseConfigDir):
-            self.logger.info('No configuration directory found, creating {}.'.format(baseConfigDir))
-            os.makedirs(baseConfigDir)
-
-        if not os.path.isfile(Environment.configFilePath):
-            self.logger.info(
-                    'No configuration file found, creating a new one in {}.'.format(Environment.configFilePath))
-            with open(Environment.configFilePath, 'w+') as emptyFile:
-                emptyFile.write('{"instances":[], "versions":[]}')
-
-        with open(Environment.configFilePath, 'r+') as configFile:
-            self.config = json.load(configFile)
-            self.logger.debug(self.config)
-
-    def __saveConfig(self):
-        baseConfigDir = os.path.dirname(Environment.configFilePath)
-
-        with open(Environment.configFilePath, 'w+') as configFile:
-            configFile.write(json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': ')))
-
-    def versions(self):
-        return self.config['versions']
-
-    def instances(self):
-        return self.config['instances']
-
-    def persist(self):
-        self.__saveConfig()
-
-class VersionManager:
-    logger = logging.getLogger('VersionManager')
-
-    def __init__(self, configManager):
-        self.configManager = configManager
-
-    def __generateDownloadLink(self, version, extension):
-        baseURL = ('http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/'
-        '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}')
-        # Make a distinction between SNAPSHOTS and releases
-        category = 'snapshots' if version.endswith('-SNAPSHOT') else 'releases'
-
-        return baseURL.format(category, version, version, extension)
-
-    def getArchiveBaseName(self, version):
-        return 'xwiki-platform-distribution-flavor-jetty-hsqldb-{}'.format(version)
-
-    # Generate the file name used for a given version
-    def getArchiveName(self, version):
-        return '{}.zip'.format(self.getArchiveBaseName(version))
-
-    # Generate the file path used for a given version
-    def getArchivePath(self, version):
-        return '{}/{}'.format(Environment.dataDir, self.getArchiveName(version))
-
-    # Download the given version
-    def download(self, version):
-        # First, check that we have a version already registered
-        self.logger.debug('Downloading version : {}'.format(version))
-        self.logger.debug('Downloaded versions : {}'.format(self.configManager.versions()))
-        if version in self.configManager.versions():
-            self.logger.info('The version {} is already downloaded, skipping.'.format(version))
-        else:
-            zipDownloadURL = self.__generateDownloadLink(version, 'zip')
-            md5DownloadURL = self.__generateDownloadLink(version, 'zip.md5')
-
-            try:
-                # Test if we don't get a 404 error or something similar
-                self.logger.debug('Testing url [{}]'.format(md5DownloadURL))
-                urllib.request.urlopen(md5DownloadURL)
-
-                # Actually download the archive
-                self.logger.info('Downloading XWiki {} archive ...'.format(version))
-                archive = urllib.request.urlretrieve(zipDownloadURL, self.getArchivePath(version))
-
-                # Mark the instance as present in the instance repository
-                self.configManager.versions().append(version)
-                self.configManager.persist()
-
-                self.logger.info('Version {} successfully downloaded!'.format(version))
-            except urllib.error.HTTPError as e:
-                self.logger.debug('Gotten error {}'.format(e))
-                self.logger.error('The url [{}] is either unaccessible or unavailable'.format(md5DownloadURL))
-                self.logger.warning('Skipping version {}'.format(version))
+from versions import VersionManager
 
 class InstanceManager:
     logger = logging.getLogger('InstanceManager')
@@ -158,7 +61,7 @@ class InstanceManager:
             self.logger.debug('Instance has been killed.')
 
     def remove(self, instanceName):
-        # Get the corresponding instance dict in the structureself.
+        # Get the corresponding instance dict in the structures.
         instanceStruct = None
         for instance in self.configManager.instances():
             if instance['name'] == instanceName:

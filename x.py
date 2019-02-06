@@ -4,24 +4,24 @@ import logging
 
 import config.environment
 
-from instances import ConfigManager
+from configuration import ConfigManager
 from instances import InstanceManager
-from instances import VersionManager
+from versions import VersionManager
 from utils import initRootLogger
-
-
-cm = ConfigManager()
-vm = VersionManager(cm)
-im = InstanceManager(cm, vm)
 
 rootParser = argparse.ArgumentParser(description='Provide a set of tools to manage local XWiki installations')
 rootParser.add_argument('--verbose', '-v', action='count', default=0, help='enable verbose logs')
-rootParser.add_argument('action', choices=['list', 'download', 'create', 'start', 'remove'], help='the action to perform')
+rootParser.add_argument('--debug', '-d', action='store_true', help='If an XWiki instance is to be started, start it in debug mode')
+rootParser.add_argument('action', help='the action to perform')
 rootParser.add_argument('parameters', default=[], nargs='+', help='the action parameters')
 args = rootParser.parse_args()
 
 initRootLogger(args.verbose)
 logger = logging.getLogger('Main')
+
+cm = ConfigManager()
+vm = VersionManager(cm)
+im = InstanceManager(cm, vm)
 
 logger.debug('Arguments : {}'.format(args))
 logger.debug('Action : {}'.format(args.action))
@@ -46,7 +46,7 @@ elif ('start'.startswith(args.action)):
     if (len(args.parameters) == 0):
         logger.error('No instance provided')
     else:
-        im.start(args.parameters[0])
+        im.start(args.parameters[0], args.debug)
 elif ('remove'.startswith(args.action)):
     if (len(args.parameters) == 0):
         logger.error('You should provide the instance name.')
