@@ -4,10 +4,10 @@ import os
 import os.path
 
 class Environment:
-    configDir = '{}/.xwenv/config'.format(os.getenv("HOME"))
+    configDir = '{}/.xtool/config'.format(os.getenv("HOME"))
     configFilePath = '{}/config.json'.format(configDir)
-    dataDir = '{}/.xwenv/versions'.format(os.getenv("HOME"))
-    instancesDir = '{}/.xwenv/instances'.format(os.getenv("HOME"))
+    dataDir = '{}/.xtool/versions'.format(os.getenv("HOME"))
+    instancesDir = '{}/.xtool/instances'.format(os.getenv("HOME"))
 
 class ConfigManager:
     logger = logging.getLogger('ConfigManager')
