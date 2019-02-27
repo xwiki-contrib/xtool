@@ -49,6 +49,6 @@ elif ('download'.startswith(args.action)):
 elif ('create'.startswith(args.action)):
     im.create(args.instance_name, args.version)
 elif ('start'.startswith(args.action)):
-    im.start(args.instnace_name, args.debug)
+    im.start(args.instance_name, args.debug)
 elif ('remove'.startswith(args.action)):
     im.remove(args.instance_name)
