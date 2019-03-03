@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+
+from xtool.configuration import ConfigManager
+from xtool.instances import InstanceManager
+from xtool.versions import VersionManager
+
+from xtool.utils import init_logger
+from xtool.utils import parse_args
+
+args = parse_args()
+init_logger(args.verbose)
+logger = logging.getLogger('Main')
+
+cm = ConfigManager()
+vm = VersionManager(cm)
+im = InstanceManager(cm, vm)
+
+logger.debug('Arguments : {}'.format(args))
+if ('list'.startswith(args.action)):
+    if ('versions'.startswith(args.entity)):
+      print(cm.versions())
+    elif ('instances'.startswith(args.entity)):
+      print(cm.instances())
+elif ('download'.startswith(args.action)):
+    vm.download(args.version)
+elif ('create'.startswith(args.action)):
+    im.create(args.instance_name, args.version)
+elif ('start'.startswith(args.action)):
+    im.start(args.instance_name, args.debug)
+elif ('remove'.startswith(args.action)):
+    im.remove(args.instance_name)

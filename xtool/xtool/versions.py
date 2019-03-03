@@ -2,8 +2,8 @@ import logging
 import urllib.error
 import urllib.request
 
-from configuration import ConfigManager
-from configuration import Environment
+from .configuration import ConfigManager
+from .configuration import Environment
 
 class VersionManager:
     logger = logging.getLogger('VersionManager')
