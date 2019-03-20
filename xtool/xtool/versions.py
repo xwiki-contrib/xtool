@@ -4,23 +4,33 @@ import urllib.request
 
 from .configuration import ConfigManager
 from .configuration import Environment
+from packaging import version as Version
 
 class VersionManager:
     logger = logging.getLogger('VersionManager')
 
     def __init__(self, configManager):
         self.configManager = configManager
+        # version from which we started to use platform
+        self.migrationVersion = Version.parse("9.5")
 
     def __generateDownloadLink(self, version, extension):
-        baseURL = ('http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/'
-        '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}')
+        if (Version.parse(version) >= self.migrationVersion):
+            baseURL = ('http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/'
+            '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}')
+        else:
+            baseURL = ('http://maven.xwiki.org/{}/org/xwiki/enterprise/xwiki-enterprise-jetty-hsqldb/{}/'
+            'xwiki-enterprise-jetty-hsqldb-{}.{}')
         # Make a distinction between SNAPSHOTS and releases
         category = 'snapshots' if version.endswith('-SNAPSHOT') else 'releases'
 
         return baseURL.format(category, version, version, extension)
 
     def getArchiveBaseName(self, version):
-        return 'xwiki-platform-distribution-flavor-jetty-hsqldb-{}'.format(version)
+        if (Version.parse(version) >= self.migrationVersion):
+            return 'xwiki-platform-distribution-flavor-jetty-hsqldb-{}'.format(version)
+        else:
+            return 'xwiki-enterprise-jetty-hsqldb-{}'.format(version)
 
     # Generate the file name used for a given version
     def getArchiveName(self, version):
