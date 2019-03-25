@@ -56,7 +56,12 @@ class InstanceManager:
         startScript = 'start_xwiki_debug.sh' if debug else 'start_xwiki.sh'
 
         try:
-            subprocess.call(['{}/./{}'.format(self.getInstancePath(instanceName), startScript)])
+            # Check if the instance exists
+            instancePath = self.getInstancePath(instanceName)
+            if os.path.isdir(instancePath):
+                subprocess.call(['{}/./{}'.format(instancePath, startScript)])
+            else:
+                self.logger.error('The instance [{}] does not exists.'.format(instanceName))
         except KeyboardInterrupt as e:
             self.logger.debug('Instance has been killed.')
 
