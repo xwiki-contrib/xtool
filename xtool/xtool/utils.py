@@ -35,7 +35,10 @@ def parse_args():
     createParser.add_argument('version', help='the XWiki version to use in the instance')
 
     startParser = subParsers.add_parser('start', help='start an instance')
-    startParser.add_argument('instance_name', help='the name of the instance to start')
+    startParser.add_argument('instance_name',
+                             nargs='?',
+                             default=None,
+                             help='the name of the instance to start')
     startParser.add_argument('-d', '--debug', action='store_true', help='toggle debug mode')
 
     removeParser = subParsers.add_parser('remove', help='remove an entity')

@@ -4,6 +4,7 @@ import argparse
 import logging
 
 from xtool.configuration import ConfigManager
+from xtool.execution import ExecEnvironment
 from xtool.instances import InstanceManager
 from xtool.versions import VersionManager
 
@@ -17,6 +18,7 @@ logger = logging.getLogger('Main')
 cm = ConfigManager()
 vm = VersionManager(cm)
 im = InstanceManager(cm, vm)
+ex = ExecEnvironment()
 
 logger.debug('Arguments : {}'.format(args))
 if ('list'.startswith(args.action)):
@@ -29,6 +31,12 @@ elif ('download'.startswith(args.action)):
 elif ('create'.startswith(args.action)):
     im.create(args.instance_name, args.version)
 elif ('start'.startswith(args.action)):
-    im.start(args.instance_name, args.debug)
+    # Check if we have an explicit instance name, else, use the environment
+    if args.instance_name:
+        im.start(args.instance_name, args.debug)
+    elif ex.getInferredInstanceName():
+        im.start(ex.getInferredInstanceName(), args.debug)
+    else:
+        logger.error('Unable to determine the name of the instance to start.')
 elif ('remove'.startswith(args.action)):
     im.remove(args.instance_name)
