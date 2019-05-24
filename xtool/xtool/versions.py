@@ -1,10 +1,12 @@
+import hashlib
 import logging
+from packaging import version as Version
+from pathlib import Path
 import urllib.error
 import urllib.request
 
 from .configuration import ConfigManager
 from .configuration import Environment
-from packaging import version as Version
 
 class VersionManager:
     logger = logging.getLogger('VersionManager')
@@ -25,6 +27,17 @@ class VersionManager:
         category = 'snapshots' if version.endswith('-SNAPSHOT') else 'releases'
 
         return baseURL.format(category, version, version, extension)
+
+    # Return the MD5 sum of the given archive
+    def __computeArchiveChecksum(self, archivePath):
+        with open(archivePath, 'rb') as archive:
+            digest = hashlib.md5()
+            while True:
+                data = archive.read(8192)
+                if not data: # In case we're at the end of the file
+                    break
+                digest.update(data)
+            return digest.hexdigest()
 
     def getArchiveBaseName(self, version):
         if (Version.parse(version) >= self.migrationVersion):
@@ -54,11 +67,22 @@ class VersionManager:
             try:
                 # Test if we don't get a 404 error or something similar
                 self.logger.debug('Testing url [{}]'.format(md5DownloadURL))
-                urllib.request.urlopen(md5DownloadURL)
+                md5Sum = urllib.request.urlopen(md5DownloadURL).read().decode('utf-8')
 
                 # Actually download the archive
                 self.logger.info('Downloading XWiki {} archive ...'.format(version))
-                archive = urllib.request.urlretrieve(zipDownloadURL, self.getArchivePath(version))
+                archivePath = self.getArchivePath(version)
+                archive = urllib.request.urlretrieve(zipDownloadURL, archivePath)
+                archiveMD5Sum = self.__computeArchiveChecksum(archivePath)
+
+                # Verify the control sum of the downloaded file
+                self.logger.debug('Checking archive integrity ...')
+                self.logger.debug('EXPECTED : {}'.format(md5Sum))
+                self.logger.debug('ACTUAL   : {}'.format(archiveMD5Sum))
+                if archiveMD5Sum != md5Sum:
+                    # If it's actually the case, delete the download files and quit
+                    os.remove(archivePath)
+                    raise IOError('The control sum of the downloaded file is invalid. Aborting.')
 
                 # Mark the instance as present in the instance repository
                 self.configManager.versions().append(version)
