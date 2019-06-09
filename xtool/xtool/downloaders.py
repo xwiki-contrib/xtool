@@ -10,73 +10,94 @@ from .configuration import ConfigManager
 class VersionDownloader:
     logger = logging.getLogger('VersionDownloader')
 
-    def __init__(self, versionManager, configManager):
+    # version : the version that needs to be downloaded
+    # versionManager : the version manager
+    # configManager : the configuration manager
+    def __init__(self, version, versionManager, configManager):
+        self.version = version
+
         self.configManager = configManager
         self.versionManager = versionManager
 
-    # Return the MD5 sum of the downloaded archive
-    def __computeArchiveChecksum(self, archivePath):
-        with open(archivePath, 'rb') as archive:
+    # Return the MD5 sum of a file
+    def __computeChecksum(self, path):
+        with open(path, 'rb') as f:
             digest = hashlib.md5()
             while True:
-                data = archive.read(8192)
+                data = f.read(8192)
                 if not data: # In case we're at the end of the file
                     break
                 digest.update(data)
             return digest.hexdigest()
 
-    def __generateDownloadLink(self, version, extension):
-        if (Version.parse(version) >= self.versionManager.migrationVersion):
+    def __generateDownloadLink(self, extension):
+        if (Version.parse(self.version) >= self.versionManager.migrationVersion):
             baseURL = ('http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/'
             '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}')
         else:
             baseURL = ('http://maven.xwiki.org/{}/org/xwiki/enterprise/xwiki-enterprise-jetty-hsqldb/{}/'
             'xwiki-enterprise-jetty-hsqldb-{}.{}')
-        # Make a distinction between SNAPSHOTS and releases
-        category = 'snapshots' if version.endswith('-SNAPSHOT') else 'releases'
 
-        return baseURL.format(category, version, version, extension)
+        category = 'releases'
 
-    # Download the given version
-    def download(self, version):
+        return baseURL.format(category, self.version, self.version, extension)
+
+    # Will safely download a file and check its MD5 sum before returning
+    def __safeDownloadFile(self, fileURL, md5FileURL, destinationPath):
+        try:
+            # Test if we don't get a 404 error or something similar
+            self.logger.debug('Testing url [{}]'.format(md5FileURL))
+            md5Sum = urllib.request.urlopen(md5FileURL).read().decode('utf-8')
+
+            # Actually download the archive
+            self.logger.info('Downloading file [{}] ...'.format(fileURL))
+            downloadedFile = urllib.request.urlretrieve(fileURL, destinationPath)
+            fileMD5Sum = self.__computeChecksum(destinationPath)
+
+            # Verify the control sum of the downloaded file
+            self.logger.debug('Checking file integrity ...')
+            self.logger.debug('EXPECTED : {}'.format(md5Sum))
+            self.logger.debug('ACTUAL   : {}'.format(fileMD5Sum))
+            if fileMD5Sum != md5Sum:
+                # If it's actually the case, delete the download files and quit
+                os.remove(destinationPath)
+                raise IOError('The control sum of the downloaded file is invalid. Aborting.')
+            return
+        except urllib.error.HTTPError as e:
+            self.logger.debug('Gotten error {}'.format(e))
+            self.logger.error('The URL [{}] is either unaccesible or unavailable'.format(md5FileURL))
+            raise e
+
+    def download(self):
         # First, check that we have a version already registered
-        self.logger.debug('Downloading version : {}'.format(version))
+        self.logger.debug('Downloading version : {}'.format(self.version))
         self.logger.debug('Downloaded versions : {}'.format(self.configManager.versions()))
-        if version in self.configManager.versions():
-            self.logger.info('The version {} is already downloaded, skipping.'.format(version))
+        if self.version in self.configManager.versions():
+            self.logger.info('The version {} is already downloaded, skipping.'.format(self.version))
         else:
-            zipDownloadURL = self.__generateDownloadLink(version, 'zip')
-            md5DownloadURL = self.__generateDownloadLink(version, 'zip.md5')
+            zipDownloadURL = self.__generateDownloadLink('zip')
+            md5DownloadURL = self.__generateDownloadLink('zip.md5')
+            archivePath = self.versionManager.getArchivePath(self.version)
 
             try:
-                # Test if we don't get a 404 error or something similar
-                self.logger.debug('Testing url [{}]'.format(md5DownloadURL))
-                md5Sum = urllib.request.urlopen(md5DownloadURL).read().decode('utf-8')
-
-                # Actually download the archive
-                self.logger.info('Downloading XWiki {} archive ...'.format(version))
-                archivePath = self.versionManager.getArchivePath(version)
-                archive = urllib.request.urlretrieve(zipDownloadURL, archivePath)
-                archiveMD5Sum = self.__computeArchiveChecksum(archivePath)
-
-                # Verify the control sum of the downloaded file
-                self.logger.debug('Checking archive integrity ...')
-                self.logger.debug('EXPECTED : {}'.format(md5Sum))
-                self.logger.debug('ACTUAL   : {}'.format(archiveMD5Sum))
-                if archiveMD5Sum != md5Sum:
-                    # If it's actually the case, delete the download files and quit
-                    os.remove(archivePath)
-                    raise IOError('The control sum of the downloaded file is invalid. Aborting.')
+                self.__safeDownloadFile(zipDownloadURL, md5DownloadURL, archivePath)
 
                 # Mark the instance as present in the instance repository
-                self.configManager.versions().append(version)
+                self.configManager.versions().append(self.version)
                 self.configManager.persist()
 
-                self.logger.info('Version {} successfully downloaded!'.format(version))
+                self.logger.info('Version {} successfully downloaded!'.format(self.version))
             except urllib.error.HTTPError as e:
-                self.logger.debug('Gotten error {}'.format(e))
-                self.logger.error('The url [{}] is either unaccessible or unavailable'.format(md5DownloadURL))
-                self.logger.warning('Skipping version {}'.format(version))
+                self.logger.warning('Skipping version {}'.format(self.version))
 
+# On the contrary to standard RC or release versions, there can be multiple artifacts for a given snapshot,
+# we need to determine the file name of the last snapshot that we will download based on the maven metadata.
 class SnapshotVersionDownloader(VersionDownloader):
-    pass
+    logger = logging.getLogger('SnapshotVersionDownloader')
+
+    def __init__(self, version, versionManager, configManager):
+        super().__init__(version, versionManager, configManager)
+        self.__getSnapshotVersionValue()
+
+    def __getSnapshotVersionValue(self):
+        pass

@@ -31,7 +31,7 @@ class VersionManager:
 
     def download(self, version):
         if (version.endswith('-SNAPSHOT')):
-            SnapshotVersionDownloader(self, self.configManager).download(version)
+            SnapshotVersionDownloader(version, self, self.configManager).download()
         else:
             # Use the standard version downloader
-            VersionDownloader(self, self.configManager).download(version)
+            VersionDownloader(version, self, self.configManager).download()
