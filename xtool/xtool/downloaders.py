@@ -3,6 +3,7 @@ import logging
 from packaging import version as Version
 import urllib.error
 import urllib.request
+import xml.etree.ElementTree as ET
 
 from .configuration import ConfigManager
 
@@ -13,11 +14,12 @@ class VersionDownloader:
     # version : the version that needs to be downloaded
     # versionManager : the version manager
     # configManager : the configuration manager
-    def __init__(self, version, versionManager, configManager):
+    def __init__(self, version, versionManager, configManager, category='releases'):
         self.version = version
 
         self.configManager = configManager
         self.versionManager = versionManager
+        self.versionCategory = category
 
     # Return the MD5 sum of a file
     def __computeChecksum(self, path):
@@ -30,17 +32,21 @@ class VersionDownloader:
                 digest.update(data)
             return digest.hexdigest()
 
-    def __generateDownloadLink(self, extension):
-        if (Version.parse(self.version) >= self.versionManager.migrationVersion):
-            baseURL = ('http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/'
-            '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}')
+    def _generateFolderLink(self):
+        if self.version.endswith('-SNAPSHOT') or Version.parse(self.version) >= self.versionManager.migrationVersion:
+            baseURL = 'http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/{}'
         else:
-            baseURL = ('http://maven.xwiki.org/{}/org/xwiki/enterprise/xwiki-enterprise-jetty-hsqldb/{}/'
-            'xwiki-enterprise-jetty-hsqldb-{}.{}')
+            baseURL = 'http://maven.xwiki.org/{}/org/xwiki/enterprise/xwiki-enterprise-jetty-hsqldb/{}'
 
-        category = 'releases'
+        return baseURL.format(self.versionCategory, self.version)
 
-        return baseURL.format(category, self.version, self.version, extension)
+    def _generateDownloadLink(self, extension):
+        if Version.parse(self.version) >= self.versionManager.migrationVersion:
+            downloadURL = '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}'
+        else:
+            downloadURL = '{}/xwiki-enterprise-jetty-hsqldb-{}.{}'
+
+        return downloadURL.format(self._generateFolderLink(), self.version, extension)
 
     # Will safely download a file and check its MD5 sum before returning
     def __safeDownloadFile(self, fileURL, md5FileURL, destinationPath):
@@ -75,8 +81,8 @@ class VersionDownloader:
         if self.version in self.configManager.versions():
             self.logger.info('The version {} is already downloaded, skipping.'.format(self.version))
         else:
-            zipDownloadURL = self.__generateDownloadLink('zip')
-            md5DownloadURL = self.__generateDownloadLink('zip.md5')
+            zipDownloadURL = self._generateDownloadLink('zip')
+            md5DownloadURL = self._generateDownloadLink('zip.md5')
             archivePath = self.versionManager.getArchivePath(self.version)
 
             try:
@@ -96,8 +102,27 @@ class SnapshotVersionDownloader(VersionDownloader):
     logger = logging.getLogger('SnapshotVersionDownloader')
 
     def __init__(self, version, versionManager, configManager):
-        super().__init__(version, versionManager, configManager)
+        super().__init__(version, versionManager, configManager, category='snapshots')
         self.__getSnapshotVersionValue()
 
     def __getSnapshotVersionValue(self):
-        pass
+        self.logger.debug('Fetching the maven-metadata.xml file from the SNAPSHOT version ...')
+        mavenMetadataURL = '{}/maven-metadata.xml'.format(self._generateFolderLink())
+
+        try:
+            mavenMetadata = urllib.request.urlopen(mavenMetadataURL).read().decode('utf-8')
+            metadataRoot = ET.fromstring(mavenMetadata)
+
+            self.snapshotVersion = (
+                metadataRoot.find('./versioning/snapshotVersions/snapshotVersion[extension=\'zip\']/value').text)
+        except urllib.error.HTTPError as e:
+            self.logger.error('Failed to fetch maven-metadata.xml file for XWiki [{}]'.format(self.version))
+            self.logger.debug('Error : [{}]'.format(e))
+
+    def _generateDownloadLink(self, extension):
+        if self.version.endswith('-SNAPSHOT') or Version.parse(self.version) >= self.versionManager.migrationVersion:
+            downloadURL = '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}'
+        else:
+            downloadURL = '{}/xwiki-enterprise-jetty-hsqldb-{}.{}'
+
+        return downloadURL.format(self._generateFolderLink(), self.snapshotVersion, extension)
