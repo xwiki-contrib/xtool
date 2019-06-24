@@ -40,13 +40,16 @@ class VersionDownloader:
 
         return baseURL.format(self.versionCategory, self.version)
 
-    def _generateDownloadLink(self, extension):
-        if Version.parse(self.version) >= self.versionManager.migrationVersion:
-            downloadURL = '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}'
+    def _generateRemoteFileName(self, version, extension):
+        if self.version.endswith('-SNAPSHOT') or Version.parse(self.version) >= self.versionManager.migrationVersion:
+            downloadURL = 'xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}'
         else:
-            downloadURL = '{}/xwiki-enterprise-jetty-hsqldb-{}.{}'
+            downloadURL = 'xwiki-enterprise-jetty-hsqldb-{}.{}'
 
-        return downloadURL.format(self._generateFolderLink(), self.version, extension)
+        return downloadURL.format(version, extension)
+
+    def _generateDownloadLink(self, extension):
+        return '{}/{}'.format(self._generateFolderLink(), self._generateRemoteFileName(self.version, extension))
 
     # Will safely download a file and check its MD5 sum before returning
     def __safeDownloadFile(self, fileURL, md5FileURL, destinationPath):
@@ -120,9 +123,4 @@ class SnapshotVersionDownloader(VersionDownloader):
             self.logger.debug('Error : [{}]'.format(e))
 
     def _generateDownloadLink(self, extension):
-        if self.version.endswith('-SNAPSHOT') or Version.parse(self.version) >= self.versionManager.migrationVersion:
-            downloadURL = '{}/xwiki-platform-distribution-flavor-jetty-hsqldb-{}.{}'
-        else:
-            downloadURL = '{}/xwiki-enterprise-jetty-hsqldb-{}.{}'
-
-        return downloadURL.format(self._generateFolderLink(), self.snapshotVersion, extension)
+        return '{}/{}'.format(self._generateFolderLink(), self._generateRemoteFileName(self.snapshotVersion, extension))
