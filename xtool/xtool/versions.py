@@ -16,7 +16,7 @@ class VersionManager:
         self.configManager = configManager
 
     def getArchiveBaseName(self, version):
-        if (Version.parse(version) >= self.migrationVersion):
+        if version.endswith('-SNAPSHOT') or Version.parse(version) >= self.migrationVersion:
             return 'xwiki-platform-distribution-flavor-jetty-hsqldb-{}'.format(version)
         else:
             return 'xwiki-enterprise-jetty-hsqldb-{}'.format(version)
