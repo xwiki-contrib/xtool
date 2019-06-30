@@ -20,6 +20,12 @@ class InstanceManager:
     def getInstancePath(self, instanceName):
         return '{}/{}'.format(Environment.instancesDir, instanceName)
 
+    def list(self):
+        rowFormat = '{:<25}| {:<25}'
+        print(rowFormat.format('Name', 'Version'))
+        for instance in self.configManager.instances():
+            print(rowFormat.format(instance['name'], instance['version']))
+
     def create(self, instanceName, version):
         # Check if the name is not already taken
         if instanceName in [instance['name'] for instance in self.configManager.instances()]:

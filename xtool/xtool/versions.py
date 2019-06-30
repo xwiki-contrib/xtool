@@ -15,6 +15,12 @@ class VersionManager:
     def __init__(self, configManager):
         self.configManager = configManager
 
+    def list(self):
+        rowFormat = '{}'
+        print(rowFormat.format('Version'))
+        for version in self.configManager.versions():
+            print(rowFormat.format(version))
+
     def getArchiveBaseName(self, version):
         if version.endswith('-SNAPSHOT') or Version.parse(version) >= self.migrationVersion:
             return 'xwiki-platform-distribution-flavor-jetty-hsqldb-{}'.format(version)

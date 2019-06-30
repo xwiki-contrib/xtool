@@ -23,9 +23,9 @@ ex = ExecEnvironment()
 logger.debug('Arguments : {}'.format(args))
 if ('list'.startswith(args.action)):
     if ('versions'.startswith(args.entity)):
-      print(cm.versions())
+      vm.list()
     elif ('instances'.startswith(args.entity)):
-      print(cm.instances())
+      im.list()
 elif ('download'.startswith(args.action)):
     vm.download(args.version)
 elif ('create'.startswith(args.action)):
