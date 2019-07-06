@@ -5,10 +5,10 @@ import shutil
 import subprocess
 import zipfile
 
-from .configuration import ConfigManager
-from .configuration import Environment
+from configuration import ConfigManager
+from configuration import Environment
 
-from .versions import VersionManager
+from versions import VersionManager
 
 class InstanceManager:
     logger = logging.getLogger('InstanceManager')

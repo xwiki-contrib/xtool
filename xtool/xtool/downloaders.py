@@ -5,7 +5,7 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
-from .configuration import ConfigManager
+from configuration import ConfigManager
 
 # Handles the download of an XWiki version
 class VersionDownloader:
