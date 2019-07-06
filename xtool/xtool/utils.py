@@ -37,6 +37,10 @@ def parse_args():
     createParser.add_argument('instance_name', help='the name of the instance to create')
     createParser.add_argument('version', help='the XWiki version to use in the instance')
 
+    editParser = subParsers.add_parser('edit', help='edit a file in the given instance')
+    editParser.add_argument('instance_name', help='the name of the instance to use')
+    editParser.add_argument('file', help='the name of the file to edit')
+
     startParser = subParsers.add_parser('start', help='start an instance')
     startParser.add_argument('instance_name',
                              nargs='?',

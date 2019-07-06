@@ -29,6 +29,8 @@ elif ('download'.startswith(args.action)):
     vm.download(args.version)
 elif ('create'.startswith(args.action)):
     im.create(args.instance_name, args.version)
+elif ('edit'.startswith(args.action)):
+    im.edit(args.instance_name, args.file)
 elif ('start'.startswith(args.action)):
     # Check if we have an explicit instance name, else, use the environment
     if args.instance_name:

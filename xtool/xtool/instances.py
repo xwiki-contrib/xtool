@@ -56,6 +56,21 @@ class InstanceManager:
 
         self.logger.info('Instance {} created in {}'.format(instanceName, instanceFinalPath))
 
+    def edit(self, instanceName, fileName):
+        # Try first to determine the editor that we will have to use
+        # If we have something defined in the configuration, then use it
+        editor = self.configManager.get('editor')
+        if editor is None:
+            # Second case : if we don't have anything set in the configuration, use the environment
+            if 'EDITOR' in os.environ.keys():
+                editor = os.environ['EDITOR']
+            else:
+                # Finally, use "editor" as the default
+                editor = "editor"
+
+        instancePath = self.getInstancePath(instanceName)
+        subprocess.call([editor, '{}/webapps/xwiki/WEB-INF/{}'.format(instancePath, fileName)])
+
     def start(self, instanceName, debug=False):
         startScript = 'start_xwiki_debug.sh' if debug else 'start_xwiki.sh'
 

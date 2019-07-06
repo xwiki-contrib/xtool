@@ -14,6 +14,12 @@ class Environment:
 class ConfigManager:
     logger = logging.getLogger('ConfigManager')
 
+    defaultConfig = {
+        'instances': [],
+        'versions': [],
+        'preferences': {}
+    }
+
     def __init__(self):
         self.__ensureExistingFolders()
         self.__loadConfig()
@@ -27,6 +33,14 @@ class ConfigManager:
                 self.logger.info('Creating directory {}'.format(folder))
                 os.makedirs(folder)
 
+    def __ensureExistingProperties(self):
+        propertiesToCheck = self.defaultConfig.keys()
+
+        configKeys = self.config.keys()
+        for property in propertiesToCheck:
+            if property not in configKeys:
+                self.config[property] = self.defaultConfig[property]
+
     # Load the configuration content
     def __loadConfig(self):
         baseConfigDir = os.path.dirname(Environment.configFilePath)
@@ -38,12 +52,13 @@ class ConfigManager:
         if not os.path.isfile(Environment.configFilePath):
             self.logger.info(
                     'No configuration file found, creating a new one in {}.'.format(Environment.configFilePath))
-            with open(Environment.configFilePath, 'w+') as emptyFile:
-                emptyFile.write('{"instances":[], "versions":[]}')
-
-        with open(Environment.configFilePath, 'r+') as configFile:
-            self.config = json.load(configFile)
-            self.logger.debug(self.config)
+            self.config = self.defaultConfig
+            self.__saveConfig()
+        else:
+            with open(Environment.configFilePath, 'r+') as configFile:
+                self.config = json.load(configFile)
+                self.__ensureExistingProperties()
+                self.logger.debug(self.config)
 
     def __saveConfig(self):
         with open(Environment.configFilePath, 'w+') as configFile:
@@ -54,6 +69,15 @@ class ConfigManager:
 
     def instances(self):
         return self.config['instances']
+
+    def get(self, preferenceName):
+        if preferenceName in self.config['preferences'].keys():
+            return self.config['preferences'][preferenceName]
+        else:
+            return None
+
+    def set(self, preferenceName, value):
+        self.config['preferences'][preferenceName] = value
 
     def persist(self):
         self.__saveConfig()
