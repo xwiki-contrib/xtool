@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import logging
 
 from configuration import ConfigManager
@@ -23,9 +22,9 @@ ex = ExecEnvironment()
 logger.debug('Arguments : {}'.format(args))
 if ('list'.startswith(args.action)):
     if ('versions'.startswith(args.entity)):
-      vm.list()
+        vm.list()
     elif ('instances'.startswith(args.entity)):
-      im.list()
+        im.list()
 elif ('download'.startswith(args.action)):
     vm.download(args.version)
 elif ('create'.startswith(args.action)):

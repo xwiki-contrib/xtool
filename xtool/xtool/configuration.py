@@ -3,11 +3,13 @@ import logging
 import os
 import os.path
 
+
 class Environment:
     configDir = '{}/.xtool/config'.format(os.getenv("HOME"))
     configFilePath = '{}/config.json'.format(configDir)
     dataDir = '{}/.xtool/versions'.format(os.getenv("HOME"))
     instancesDir = '{}/.xtool/instances'.format(os.getenv("HOME"))
+
 
 class ConfigManager:
     logger = logging.getLogger('ConfigManager')
@@ -44,8 +46,6 @@ class ConfigManager:
             self.logger.debug(self.config)
 
     def __saveConfig(self):
-        baseConfigDir = os.path.dirname(Environment.configFilePath)
-
         with open(Environment.configFilePath, 'w+') as configFile:
             configFile.write(json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': ')))
 

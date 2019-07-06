@@ -2,6 +2,7 @@ import logging
 import os
 import xml.etree.ElementTree
 
+
 class ExecEnvironment:
     logger = logging.getLogger('ExecEnvironment')
 
@@ -14,8 +15,8 @@ class ExecEnvironment:
         # In order to do so, we need to fetch the top level POM file of the project we're in.
         # Note that this rule is not perfect, however, that's how it's done usually
         # in XWiki projects
-        currentPath = os.getcwd();
-        previousPath = currentPath;
+        currentPath = os.getcwd()
+        previousPath = currentPath
         pomFound = False
         noMorePomAvailable = False
 
@@ -45,9 +46,8 @@ class ExecEnvironment:
 
     def __parseProjectPom(self):
         tree = xml.etree.ElementTree.parse(self.projectPom)
-        root = tree.getroot()
         self.environmentVersion = tree.find("./{http://maven.apache.org/POM/4.0.0}parent"
-                                       "/{http://maven.apache.org/POM/4.0.0}version").text
+                                            "/{http://maven.apache.org/POM/4.0.0}version").text
         self.environmentVersion = self.environmentVersion.split('-')[0]
         self.logger.debug('Inferred version : [{}]'.format(self.environmentVersion))
 

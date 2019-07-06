@@ -1,11 +1,11 @@
 import hashlib
 import logging
+import os
 from packaging import version as Version
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
-from configuration import ConfigManager
 
 # Handles the download of an XWiki version
 class VersionDownloader:
@@ -27,7 +27,7 @@ class VersionDownloader:
             digest = hashlib.md5()
             while True:
                 data = f.read(8192)
-                if not data: # In case we're at the end of the file
+                if not data:  # In case we're at the end of the file
                     break
                 digest.update(data)
             return digest.hexdigest()
@@ -60,7 +60,7 @@ class VersionDownloader:
 
             # Actually download the archive
             self.logger.info('Downloading file [{}] ...'.format(fileURL))
-            downloadedFile = urllib.request.urlretrieve(fileURL, destinationPath)
+            urllib.request.urlretrieve(fileURL, destinationPath)
             fileMD5Sum = self.__computeChecksum(destinationPath)
 
             # Verify the control sum of the downloaded file
@@ -96,8 +96,9 @@ class VersionDownloader:
                 self.configManager.persist()
 
                 self.logger.info('Version {} successfully downloaded!'.format(self.version))
-            except urllib.error.HTTPError as e:
+            except urllib.error.HTTPError:
                 self.logger.warning('Skipping version {}'.format(self.version))
+
 
 # On the contrary to standard RC or release versions, there can be multiple artifacts for a given snapshot,
 # we need to determine the file name of the last snapshot that we will download based on the maven metadata.

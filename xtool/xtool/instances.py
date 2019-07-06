@@ -1,14 +1,11 @@
-import json
 import logging
 import os
 import shutil
 import subprocess
 import zipfile
 
-from configuration import ConfigManager
 from configuration import Environment
 
-from versions import VersionManager
 
 class InstanceManager:
     logger = logging.getLogger('InstanceManager')
@@ -44,8 +41,9 @@ class InstanceManager:
         zipRef = zipfile.ZipFile(self.versionManager.getArchivePath(version), 'r')
         zipRef.extractall(Environment.instancesDir)
         zipRef.close()
-        os.rename('{}/{}'.format(Environment.instancesDir, self.versionManager.getArchiveBaseName(version)),
-                instanceFinalPath)
+        os.rename('{}/{}'.format(Environment.instancesDir,
+                                 self.versionManager.getArchiveBaseName(version)),
+                  instanceFinalPath)
 
         # Mark the execution scripts executable
         os.chmod('{}/start_xwiki.sh'.format(instanceFinalPath), 0o755)
@@ -68,7 +66,7 @@ class InstanceManager:
                 subprocess.call(['{}/./{}'.format(instancePath, startScript)])
             else:
                 self.logger.error('The instance [{}] does not exists.'.format(instanceName))
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             self.logger.debug('Instance has been killed.')
 
     def remove(self, instanceName):

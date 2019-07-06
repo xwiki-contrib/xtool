@@ -1,11 +1,11 @@
 import logging
 from packaging import version as Version
 
-from configuration import ConfigManager
 from configuration import Environment
 
 from downloaders import VersionDownloader
 from downloaders import SnapshotVersionDownloader
+
 
 class VersionManager:
     logger = logging.getLogger('VersionManager')

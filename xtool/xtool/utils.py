@@ -3,6 +3,7 @@ import argparse
 import logging
 import sys
 
+
 def init_logger(logLevel):
     root = logging.getLogger()
 
@@ -18,8 +19,10 @@ def init_logger(logLevel):
     handler.setFormatter(formatter)
     root.addHandler(handler)
 
+
 def parse_args():
-    rootParser = argparse.ArgumentParser(prog='x', description='Provide a set of tools to manage local XWiki installations')
+    rootParser = argparse.ArgumentParser(prog='x',
+                                         description='Provide a set of tools to manage local XWiki installations')
     rootParser.add_argument('-v', '--verbose', action='count', default=0, help='enable verbose logs')
 
     subParsers = rootParser.add_subparsers(dest='action', required=True, help='the action to perform')
