@@ -17,7 +17,9 @@ class ConfigManager:
     defaultConfig = {
         'instances': [],
         'versions': [],
-        'preferences': {}
+        'preferences': {
+            'editor': None
+        }
     }
 
     def __init__(self):
@@ -40,6 +42,10 @@ class ConfigManager:
         for property in propertiesToCheck:
             if property not in configKeys:
                 self.config[property] = self.defaultConfig[property]
+
+    # Make sure that the given preference is actually something that we want to store
+    def __ensureValidPreference(self, preferenceName):
+        return preferenceName in self.defaultConfig['preferences'].keys()
 
     # Load the configuration content
     def __loadConfig(self):
@@ -76,8 +82,17 @@ class ConfigManager:
         else:
             return None
 
+    """
+    Set the given value to the given preference
+    * Returns True if the operation succeeded
+    * Returns False in case the preference name is not valid
+    """
     def set(self, preferenceName, value):
-        self.config['preferences'][preferenceName] = value
+        if self.__ensureValidPreference(preferenceName):
+            self.config['preferences'][preferenceName] = value
+            return True
+        else:
+            return False
 
     def persist(self):
         self.__saveConfig()

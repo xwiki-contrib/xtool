@@ -27,6 +27,12 @@ if ('list'.startswith(args.action)):
         im.list()
 elif ('download'.startswith(args.action)):
     vm.download(args.version)
+elif ('config'.startswith(args.action)):
+    if args.set is not None:
+        cm.set(args.property_name, args.set)
+        cm.persist()
+    else:
+        print(cm.get(args.property_name))
 elif ('create'.startswith(args.action)):
     im.create(args.instance_name, args.version)
 elif ('edit'.startswith(args.action)):

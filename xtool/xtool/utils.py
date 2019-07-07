@@ -33,6 +33,10 @@ def parse_args():
     downloadParser = subParsers.add_parser('download', help='download a new version')
     downloadParser.add_argument('version', help='the XWiki version to download')
 
+    configParser = subParsers.add_parser('config', help='view or edit the tool configuration')
+    configParser.add_argument('property_name', help='the name of the property')
+    configParser.add_argument('-s', '--set', metavar='VALUE', help='set the value of the property')
+
     createParser = subParsers.add_parser('create', help='create a new instance')
     createParser.add_argument('instance_name', help='the name of the instance to create')
     createParser.add_argument('version', help='the XWiki version to use in the instance')
