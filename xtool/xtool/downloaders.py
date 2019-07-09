@@ -34,9 +34,9 @@ class VersionDownloader:
 
     def _generateFolderLink(self):
         if self.version.endswith('-SNAPSHOT') or Version.parse(self.version) >= self.versionManager.migrationVersion:
-            baseURL = 'http://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/{}'
+            baseURL = 'https://maven.xwiki.org/{}/org/xwiki/platform/xwiki-platform-distribution-flavor-jetty-hsqldb/{}'
         else:
-            baseURL = 'http://maven.xwiki.org/{}/org/xwiki/enterprise/xwiki-enterprise-jetty-hsqldb/{}'
+            baseURL = 'https://maven.xwiki.org/{}/org/xwiki/enterprise/xwiki-enterprise-jetty-hsqldb/{}'
 
         return baseURL.format(self.versionCategory, self.version)
 
