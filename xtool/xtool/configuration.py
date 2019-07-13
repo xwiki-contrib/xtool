@@ -18,7 +18,8 @@ class ConfigManager:
         'instances': [],
         'versions': [],
         'preferences': {
-            'editor': None
+            'editor': None,
+            'debug': False
         }
     }
 

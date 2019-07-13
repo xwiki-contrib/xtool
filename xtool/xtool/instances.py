@@ -86,6 +86,10 @@ class InstanceManager:
             self.logger.debug('Instance has been killed.')
 
     def start(self, entityName, debug=False, temp=False):
+        # In case debug mode is forced by the config, force it
+        debug = debug or self.configManager.get('debug')
+        self.logger.debug('Instance debug mode : [{}]'.format(debug))
+
         if temp:
             # Generate a temporary instance id
             instanceName = 'xtool-{}'.format(binascii.b2a_hex(os.urandom(4)).decode('UTF-8'))

@@ -20,6 +20,16 @@ def init_logger(logLevel):
     root.addHandler(handler)
 
 
+def valid_config(configArg):
+    upperArg = str(configArg).lower()
+    if upperArg in ['true']:
+        return True
+    elif upperArg in ['false']:
+        return False
+    else:
+        return configArg
+
+
 def parse_args():
     rootParser = argparse.ArgumentParser(prog='x',
                                          description='Provide a set of tools to manage local XWiki installations')
@@ -35,7 +45,7 @@ def parse_args():
 
     configParser = subParsers.add_parser('config', help='view or edit the tool configuration')
     configParser.add_argument('property_name', help='the name of the property')
-    configParser.add_argument('-s', '--set', metavar='VALUE', help='set the value of the property')
+    configParser.add_argument('-s', '--set', metavar='VALUE', type=valid_config, help='set the value of the property')
 
     createParser = subParsers.add_parser('create', help='create a new instance')
     createParser.add_argument('instance_name', help='the name of the instance to create')
