@@ -46,11 +46,12 @@ def parse_args():
     editParser.add_argument('file', help='the name of the file to edit')
 
     startParser = subParsers.add_parser('start', help='start an instance')
-    startParser.add_argument('instance_name',
+    startParser.add_argument('entity_name',
                              nargs='?',
                              default=None,
-                             help='the name of the instance to start')
+                             help='the name of the instance or version (if --temp) to start')
     startParser.add_argument('-d', '--debug', action='store_true', help='toggle debug mode')
+    startParser.add_argument('-t', '--temp', action='store_true', help='start a temporary instance')
 
     removeParser = subParsers.add_parser('remove', help='remove an entity')
     removeParser.add_argument('instance_name', help='the name of the instnace to remove')

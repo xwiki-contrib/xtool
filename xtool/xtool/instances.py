@@ -1,3 +1,4 @@
+import binascii
 import logging
 import os
 import shutil
@@ -71,7 +72,7 @@ class InstanceManager:
         instancePath = self.getInstancePath(instanceName)
         subprocess.call([editor, '{}/webapps/xwiki/WEB-INF/{}'.format(instancePath, fileName)])
 
-    def start(self, instanceName, debug=False):
+    def __startInstance(self, instanceName, debug=False):
         startScript = 'start_xwiki_debug.sh' if debug else 'start_xwiki.sh'
 
         try:
@@ -83,6 +84,16 @@ class InstanceManager:
                 self.logger.error('The instance [{}] does not exists.'.format(instanceName))
         except KeyboardInterrupt:
             self.logger.debug('Instance has been killed.')
+
+    def start(self, entityName, debug=False, temp=False):
+        if temp:
+            # Generate a temporary instance id
+            instanceName = 'xtool-{}'.format(binascii.b2a_hex(os.urandom(4)).decode('UTF-8'))
+            self.create(instanceName, entityName)
+            self.__startInstance(instanceName, debug)
+            self.remove(instanceName)
+        else:
+            self.__startInstance(entityName, debug)
 
     def remove(self, instanceName):
         # Get the corresponding instance dict in the structures.

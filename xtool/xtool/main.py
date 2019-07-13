@@ -39,8 +39,8 @@ elif ('edit'.startswith(args.action)):
     im.edit(args.instance_name, args.file)
 elif ('start'.startswith(args.action)):
     # Check if we have an explicit instance name, else, use the environment
-    if args.instance_name:
-        im.start(args.instance_name, args.debug)
+    if args.entity_name:
+        im.start(args.entity_name, args.debug, args.temp)
     elif ex.getInferredInstanceName():
         im.start(ex.getInferredInstanceName(), args.debug)
     else:
