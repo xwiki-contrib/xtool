@@ -72,8 +72,9 @@ class ConfigManager:
                 self.logger.debug(self.config)
 
     def __saveConfig(self):
+        dumps = json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': '))
         with open(Environment.configFilePath, 'w+') as configFile:
-            configFile.write(json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': ')))
+            configFile.write(dumps)
 
     def versions(self):
         return self.config['versions']
