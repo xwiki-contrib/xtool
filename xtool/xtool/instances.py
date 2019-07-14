@@ -81,7 +81,7 @@ class InstanceManager:
             if os.path.isdir(instancePath):
                 subprocess.call(['{}/./{}'.format(instancePath, startScript)])
             else:
-                self.logger.error('The instance [{}] does not exists.'.format(instanceName))
+                self.logger.error('The instance [{}] folder does not exists.'.format(instanceName))
         except KeyboardInterrupt:
             self.logger.debug('Instance has been killed.')
 
@@ -90,14 +90,20 @@ class InstanceManager:
         debug = debug or self.configManager.get('debug')
         self.logger.debug('Instance debug mode : [{}]'.format(debug))
 
-        if temp:
-            # Generate a temporary instance id
-            instanceName = 'xtool-{}'.format(binascii.b2a_hex(os.urandom(4)).decode('UTF-8'))
-            self.create(instanceName, entityName)
-            self.__startInstance(instanceName, debug)
-            self.remove(instanceName)
-        else:
+        # Check if the instance name exists
+        if entityName in [i['name'] for i in self.configManager.instances()]:
             self.__startInstance(entityName, debug)
+        else:
+            # Check that the entityName is a version
+            if entityName in self.configManager.versions():
+                # Generate a temporary instance id
+                instanceName = 'xtool-{}'.format(binascii.b2a_hex(os.urandom(4)).decode('UTF-8'))
+                self.create(instanceName, entityName)
+                self.__startInstance(instanceName, debug)
+                if temp:
+                    self.remove(instanceName)
+            else:
+                self.logger.error('The provided entity name is invalid')
 
     def remove(self, instanceName):
         # Get the corresponding instance dict in the structures.
