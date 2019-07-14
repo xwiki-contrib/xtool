@@ -27,6 +27,8 @@ if ('list'.startswith(args.action)):
         vm.list()
     elif ('instances'.startswith(args.entity)):
         im.list()
+    elif ('snapshots'.startswith(args.entity)):
+        sm.list()
 elif ('download'.startswith(args.action)):
     vm.download(args.version)
 elif ('config'.startswith(args.action)):

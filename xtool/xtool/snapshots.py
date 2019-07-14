@@ -5,7 +5,6 @@ import logging
 import os
 import shutil
 import tempfile
-import zipfile
 
 from configuration import Environment
 
@@ -19,7 +18,14 @@ class SnapshotManager:
         self.instanceManager = instanceManager
 
     def list(self):
-        pass
+        rowFormat = '{:<25}| {:<25}| {:<15}| {:<25}| {:<10}'
+        print(rowFormat.format('Name', 'Instance', 'Version', 'Date', 'Format'))
+        for snapshot in self.configManager.snapshots():
+            print(rowFormat.format(snapshot['name'],
+                                   snapshot['instance-name'],
+                                   snapshot['version'],
+                                   datetime.datetime.fromisoformat(snapshot['date']).__format__('%a %d %b %Y - %H:%M'),
+                                   snapshot['format']))
 
     def __makeDirDiff(self, dirDiff, removedElements, relativePath, snapshotPath):
         self.logger.debug('Current diff dirs : [{}] - [{}]'.format(dirDiff.left, dirDiff.right))
@@ -97,7 +103,6 @@ class SnapshotManager:
 
         else:
             self.logger.error('The instance name [{}] is invalid'.format(instanceName))
-
 
     def restore(self, snapshotName):
         pass
