@@ -31,9 +31,7 @@ class InstanceManager:
             return
 
         # First, check if we have the corresponding version
-        if version not in self.configManager.versions():
-            self.logger.info('Version {} not in the local repository ; downloading it ...'.format(version))
-            self.versionManager.download(version)
+        self.versionManager.ensureVersion(version)
 
         # Now we are sure to have a version available.
         # Get the file and unzip it
@@ -103,7 +101,7 @@ class InstanceManager:
                 if temp:
                     self.remove(instanceName)
             else:
-                self.logger.error('The provided entity name is invalid')
+                self.logger.error('The entity name [{}] is invalid'.format(entityName))
 
     def remove(self, instanceName):
         # Get the corresponding instance dict in the structures.

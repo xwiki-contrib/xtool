@@ -9,6 +9,7 @@ class Environment:
     configFilePath = '{}/config.json'.format(configDir)
     dataDir = '{}/.xtool/versions'.format(os.getenv("HOME"))
     instancesDir = '{}/.xtool/instances'.format(os.getenv("HOME"))
+    snapshotsDir = '{}/.xtool/snapshots'.format(os.getenv("HOME"))
 
 
 class ConfigManager:
@@ -17,9 +18,11 @@ class ConfigManager:
     defaultConfig = {
         'instances': [],
         'versions': [],
+        'snapshots': [],
         'preferences': {
             'editor': None,
-            'debug': False
+            'debug': False,
+            'snapshot-format': 'xztar'
         }
     }
 
@@ -28,7 +31,8 @@ class ConfigManager:
         self.__loadConfig()
 
     def __ensureExistingFolders(self):
-        foldersToCheck = [Environment.configDir, Environment.dataDir, Environment.instancesDir]
+        foldersToCheck = [Environment.configDir, Environment.dataDir,
+                          Environment.instancesDir, Environment.snapshotsDir]
 
         for folder in foldersToCheck:
             self.logger.debug('Checking directory {}'.format(folder))
@@ -76,6 +80,9 @@ class ConfigManager:
 
     def instances(self):
         return self.config['instances']
+
+    def snapshots(self):
+        return self.config['snapshots']
 
     def get(self, preferenceName):
         if preferenceName in self.config['preferences'].keys():

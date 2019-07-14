@@ -5,6 +5,7 @@ import logging
 from configuration import ConfigManager
 from execution import ExecEnvironment
 from instances import InstanceManager
+from snapshots import SnapshotManager
 from versions import VersionManager
 
 from utils import init_logger
@@ -17,6 +18,7 @@ logger = logging.getLogger('Main')
 cm = ConfigManager()
 vm = VersionManager(cm)
 im = InstanceManager(cm, vm)
+sm = SnapshotManager(cm, vm, im)
 ex = ExecEnvironment()
 
 logger.debug('Arguments : {}'.format(args))
@@ -37,6 +39,8 @@ elif ('create'.startswith(args.action)):
     im.create(args.instance_name, args.version)
 elif ('edit'.startswith(args.action)):
     im.edit(args.instance_name, args.file)
+elif ('snapshot'.startswith(args.action)):
+    sm.create(args.entity_name)
 elif ('start'.startswith(args.action)):
     # Check if we have an explicit instance name, else, use the environment
     if args.entity_name:

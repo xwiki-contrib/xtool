@@ -35,6 +35,14 @@ class VersionManager:
     def getArchivePath(self, version):
         return '{}/{}'.format(Environment.dataDir, self.getArchiveName(version))
 
+    def ensureVersion(self, version):
+        if not self.hasVersion(version):
+            self.logger.info('Version {} not in the local repository ; downloading it ...'.format(version))
+            self.download(version)
+
+    def hasVersion(self, version):
+        return version in self.configManager.versions()
+
     def download(self, version):
         if (version.endswith('-SNAPSHOT')):
             SnapshotVersionDownloader(version, self, self.configManager).download()
