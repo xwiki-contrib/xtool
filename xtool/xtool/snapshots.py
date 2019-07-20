@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import tempfile
+import zipfile
 
 from configuration import Environment
 
@@ -16,6 +17,23 @@ class SnapshotManager:
         self.configManager = configManager
         self.versionManager = versionManager
         self.instanceManager = instanceManager
+
+    def getSnapshotPath(self, snapshotName, includeExtension=False, snapshotFormat=None):
+        if includeExtension:
+            return '{}/{}{}'.format(Environment.snapshotsDir,
+                                    snapshotName,
+                                    self.getSnapshotExtension(snapshotName, snapshotFormat))
+        else:
+            return '{}/{}'.format(Environment.snapshotsDir,
+                                    snapshotName)
+
+    def getSnapshotExtension(self, snapshotName, snapshotFormat):
+        availableFormats = shutil.get_unpack_formats()
+        for format in availableFormats:
+            if format[0] == snapshotFormat:
+                ## TODO: Refactor to allow check on any possible format
+                return format[1][0]
+
 
     def list(self):
         rowFormat = '{:<25}| {:<25}| {:<15}| {:<25}| {:<10}'
@@ -86,7 +104,7 @@ class SnapshotManager:
                 # 3. Archive the dir
                 snapshotName = '{}-{}'.format(instanceName, binascii.b2a_hex(os.urandom(4)).decode('UTF-8'))
                 snapshotFormat = self.configManager.get('snapshot-format') or 'zip'
-                snapshotPath = os.path.join(Environment.snapshotsDir, snapshotName)
+                snapshotPath = self.getSnapshotPath(snapshotName)
                 self.logger.info('Creating snapshot in [{}]'.format(snapshotPath))
                 shutil.make_archive(snapshotPath, snapshotFormat, root_dir=snapshotDir)
 
@@ -100,9 +118,38 @@ class SnapshotManager:
                     'removed-elements': removedElements
                 })
                 self.configManager.persist()
-
         else:
             self.logger.error('The instance name [{}] is invalid'.format(instanceName))
 
-    def restore(self, snapshotName):
-        pass
+    def restore(self, snapshotName, overwrite=False):
+        # Get the configuration of the snapshot
+        matchingSnapshots = [s for s in self.configManager.snapshots() if s['name'] == snapshotName]
+        if len(matchingSnapshots) == 1:
+            snapshotConfig = matchingSnapshots[0]
+            # See if we already have an existing instance with this name
+            matchingInstances = [i for i in self.configManager.instances()
+                                 if i['name'] == snapshotConfig['instance-name']]
+            if len(matchingInstances) == 0 or (len(matchingInstances) == 1 and overwrite):
+                # In case the instance already exists, wipe it
+                if len(matchingInstances) > 0:
+                    self.instanceManager.remove(snapshotConfig['instance-name'])
+
+                # Create a new instance
+                self.instanceManager.create(snapshotConfig['instance-name'], snapshotConfig['version'])
+
+                # Remove unused files / folders
+                for file in snapshotConfig['removed-elements']:
+                    if os.is_dir(file):
+                        os.rmdir(file)
+                    else:
+                        os.remove(file)
+
+                # Unzip the backup that we had
+                shutil.unpack_archive(self.getSnapshotPath(snapshotName, snapshotConfig['format']),
+                                      self.instanceManager.getInstancePath(snapshotConfig['instance-name']))
+
+            else:
+                self.logger.error('An instance with the name [{}] already exists, aborting ...'
+                                  .format(snapshotConfig['instance-name']))
+        else:
+            self.logger.error('The snapshot name [{}] is invalid'.format(snapshotName))

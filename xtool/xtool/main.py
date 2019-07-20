@@ -42,7 +42,10 @@ elif ('create'.startswith(args.action)):
 elif ('edit'.startswith(args.action)):
     im.edit(args.instance_name, args.file)
 elif ('snapshot'.startswith(args.action)):
-    sm.create(args.entity_name)
+    if ('create'.startswith(args.snapshot_action)):
+        sm.create(args.entity_name)
+    if ('restore'.startswith(args.snapshot_action)):
+        sm.restore(args.entity_name, args.overwrite)
 elif ('start'.startswith(args.action)):
     # Check if we have an explicit instance name, else, use the environment
     if args.entity_name:

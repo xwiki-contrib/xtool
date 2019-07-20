@@ -59,6 +59,8 @@ def parse_args():
     snapshotParser.add_argument('snapshot_action', choices=['create', 'restore'], help='the action to perform')
     snapshotParser.add_argument('entity_name',
                                 help='the name of the instance to snapshot or the name of the snapshot to restore')
+    snapshotParser.add_argument('-o', '--overwrite', action='store_true',
+                                help='overwrite an existing instance if needed')
 
     startParser = subParsers.add_parser('start', help='start an instance')
     startParser.add_argument('entity_name',
