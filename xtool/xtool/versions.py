@@ -1,7 +1,7 @@
 import logging
 from packaging import version as Version
 
-from configuration import Environment
+from environment import Environment
 
 from downloaders import VersionDownloader
 from downloaders import SnapshotVersionDownloader

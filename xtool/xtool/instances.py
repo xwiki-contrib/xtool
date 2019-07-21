@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import zipfile
 
-from configuration import Environment
+from environment import Environment
 
 
 class InstanceManager:

@@ -3,13 +3,9 @@ import logging
 import os
 import os.path
 
+from environment import Environment
 
-class Environment:
-    configDir = '{}/.xtool/config'.format(os.getenv("HOME"))
-    configFilePath = '{}/config.json'.format(configDir)
-    dataDir = '{}/.xtool/versions'.format(os.getenv("HOME"))
-    instancesDir = '{}/.xtool/instances'.format(os.getenv("HOME"))
-    snapshotsDir = '{}/.xtool/snapshots'.format(os.getenv("HOME"))
+from entities import Snapshot
 
 
 class ConfigManager:
@@ -70,6 +66,10 @@ class ConfigManager:
                 self.config = json.load(configFile)
                 self.__ensureExistingProperties()
                 self.logger.debug(self.config)
+                # Create local snapshots
+                self.snapshots = []
+                for snapshot in self.config['snapshots']:
+                    self.snapshots.append(Snapshot(snapshot))
 
     def __saveConfig(self):
         dumps = json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': '))
@@ -82,8 +82,12 @@ class ConfigManager:
     def instances(self):
         return self.config['instances']
 
-    def snapshots(self):
-        return self.config['snapshots']
+    def getSnapshot(self, snapshotName):
+        matchingSnapshots = [s for s in self.snapshots if s['name'] == snapshotName]
+        if len(matchingSnapshots) == 0:
+            return None
+        else:
+            return matchingSnapshots[0]
 
     def get(self, preferenceName):
         if preferenceName in self.config['preferences'].keys():
@@ -104,4 +108,8 @@ class ConfigManager:
             return False
 
     def persist(self):
+        # Collect the potenial changes in the entities
+        #self.config['versions'] = [v.config for v in self.versions]
+        #self.config['instances'] = [i.config for i in self.instances]
+        self.config['snapshots'] = [s.config for s in self.snapshots]
         self.__saveConfig()
