@@ -44,8 +44,20 @@ class VersionManager:
         return version in self.configManager.versions()
 
     def download(self, version):
-        if (version.endswith('-SNAPSHOT')):
-            SnapshotVersionDownloader(version, self, self.configManager).download()
+        # First, check that we have a version already registered
+        self.logger.debug('Downloading version : {}'.format(version))
+        self.logger.debug('Downloaded versions : {}'.format(self.configManager.versions()))
+        if version in self.configManager.versions():
+            self.logger.info('The version {} is already downloaded, skipping.'.format(self.version))
         else:
-            # Use the standard version downloader
-            VersionDownloader(version, self, self.configManager).download()
+            if (version.endswith('-SNAPSHOT')):
+                downloadSuccessful = SnapshotVersionDownloader(version, self).download()
+            else:
+                # Use the standard version downloader
+                downloadSuccessful = VersionDownloader(version, self).download()
+
+            if downloadSuccessful:
+                # Mark the instance as present in the instance repository
+                self.configManager.versions().append(self.version)
+                self.configManager.persist()
+                self.logger.info('Version {} successfully downloaded!'.format(self.version))

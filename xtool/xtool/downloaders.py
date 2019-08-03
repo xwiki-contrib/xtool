@@ -13,11 +13,9 @@ class VersionDownloader:
 
     # version : the version that needs to be downloaded
     # versionManager : the version manager
-    # configManager : the configuration manager
-    def __init__(self, version, versionManager, configManager, category='releases'):
+    def __init__(self, version, versionManager, category='releases'):
         self.version = version
 
-        self.configManager = configManager
         self.versionManager = versionManager
         self.versionCategory = category
 
@@ -77,27 +75,20 @@ class VersionDownloader:
             self.logger.error('The URL [{}] is either unaccesible or unavailable'.format(md5FileURL))
             raise e
 
+    # Tries to download the file
+    # Returns True if the download occured, false in any other case.
     def download(self):
-        # First, check that we have a version already registered
-        self.logger.debug('Downloading version : {}'.format(self.version))
-        self.logger.debug('Downloaded versions : {}'.format(self.configManager.versions()))
-        if self.version in self.configManager.versions():
-            self.logger.info('The version {} is already downloaded, skipping.'.format(self.version))
-        else:
-            zipDownloadURL = self._generateDownloadLink('zip')
-            md5DownloadURL = self._generateDownloadLink('zip.md5')
-            archivePath = self.versionManager.getArchivePath(self.version)
+        zipDownloadURL = self._generateDownloadLink('zip')
+        md5DownloadURL = self._generateDownloadLink('zip.md5')
+        archivePath = self.versionManager.getArchivePath(self.version)
 
-            try:
-                self.__safeDownloadFile(zipDownloadURL, md5DownloadURL, archivePath)
-
-                # Mark the instance as present in the instance repository
-                self.configManager.versions().append(self.version)
-                self.configManager.persist()
-
-                self.logger.info('Version {} successfully downloaded!'.format(self.version))
-            except urllib.error.HTTPError:
-                self.logger.warning('Skipping version {}'.format(self.version))
+        try:
+            self.__safeDownloadFile(zipDownloadURL, md5DownloadURL, archivePath)
+            return True
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            self.logger.error('Error while downloading file : {}'.format(e))
+            self.logger.info('Skipping version {}'.format(self.version))
+            return False
 
 
 # On the contrary to standard RC or release versions, there can be multiple artifacts for a given snapshot,
@@ -105,8 +96,9 @@ class VersionDownloader:
 class SnapshotVersionDownloader(VersionDownloader):
     logger = logging.getLogger('SnapshotVersionDownloader')
 
-    def __init__(self, version, versionManager, configManager):
-        super().__init__(version, versionManager, configManager, category='snapshots')
+    def __init__(self, version, versionManager):
+        super().__init__(version, versionManager, category='snapshots')
+        self.snapshotVersion = None
         self.__getSnapshotVersionValue()
 
     def __getSnapshotVersionValue(self):
@@ -119,7 +111,7 @@ class SnapshotVersionDownloader(VersionDownloader):
 
             self.snapshotVersion = (
                 metadataRoot.find('./versioning/snapshotVersions/snapshotVersion[extension=\'zip\']/value').text)
-        except urllib.error.HTTPError as e:
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
             self.logger.error('Failed to fetch maven-metadata.xml file for XWiki [{}]'.format(self.version))
             self.logger.debug('Error : [{}]'.format(e))
 
