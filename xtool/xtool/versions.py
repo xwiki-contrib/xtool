@@ -48,7 +48,7 @@ class VersionManager:
         self.logger.debug('Downloading version : {}'.format(version))
         self.logger.debug('Downloaded versions : {}'.format(self.configManager.versions()))
         if version in self.configManager.versions():
-            self.logger.info('The version {} is already downloaded, skipping.'.format(self.version))
+            self.logger.info('The version {} is already downloaded, skipping.'.format(version))
         else:
             if (version.endswith('-SNAPSHOT')):
                 downloadSuccessful = SnapshotVersionDownloader(version, self).download()
@@ -58,6 +58,6 @@ class VersionManager:
 
             if downloadSuccessful:
                 # Mark the instance as present in the instance repository
-                self.configManager.versions().append(self.version)
+                self.configManager.versions().append(version)
                 self.configManager.persist()
-                self.logger.info('Version {} successfully downloaded!'.format(self.version))
+                self.logger.info('Version {} successfully downloaded!'.format(version))
