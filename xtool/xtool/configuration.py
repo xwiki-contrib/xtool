@@ -4,6 +4,7 @@ import os
 import os.path
 
 from environment import Environment
+from packaging import version
 
 from entities import Snapshot
 
@@ -112,4 +113,11 @@ class ConfigManager:
         #self.config['versions'] = [v.config for v in self.versions]
         #self.config['instances'] = [i.config for i in self.instances]
         self.config['snapshots'] = [s.config for s in self.snapshots]
+
+        # Sort the versions by their number
+        self.config['versions'] = sorted(self.config['versions'], key=lambda x: version.Version(x))
+
+        # Sort the instances alphebetically
+        self.config['instances'] = sorted(self.config['instances'], key=lambda x: x['name'])
+
         self.__saveConfig()
