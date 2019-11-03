@@ -55,6 +55,10 @@ def parse_args():
     editParser.add_argument('instance_name', help='the name of the instance to use')
     editParser.add_argument('file', help='the name of the file to edit')
 
+    copyParser = subParsers.add_parser('copy', help='copy an instance')
+    copyParser.add_argument('instance_name', help='the name of the instance to copy')
+    copyParser.add_argument('new_instance_name', help='the new name of the instance')
+
     snapshotParser = subParsers.add_parser('snapshot', help='manage instance snapshots')
     snapshotParser.add_argument('snapshot_action', choices=['create', 'restore'], help='the action to perform')
     snapshotParser.add_argument('entity_name',

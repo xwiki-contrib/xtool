@@ -37,6 +37,8 @@ elif ('config'.startswith(args.action)):
         cm.persist()
     else:
         print(cm.get(args.property_name))
+elif ('copy'.startswith(args.action)):
+    im.copy(args.instance_name, args.new_instance_name)
 elif ('create'.startswith(args.action)):
     im.create(args.instance_name, args.version)
 elif ('edit'.startswith(args.action)):

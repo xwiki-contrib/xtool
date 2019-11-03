@@ -70,6 +70,25 @@ class InstanceManager:
         instancePath = self.getInstancePath(instanceName)
         subprocess.call([editor, '{}/webapps/xwiki/WEB-INF/{}'.format(instancePath, fileName)])
 
+    def copy(self, instanceName, newInstanceName):
+        # Verify that the instance exists
+        matchingInstances = [i for i in self.configManager.instances() if i['name'] == instanceName]
+
+        if len(matchingInstances) == 1:
+            # Verify that no instance exists with the new name
+            matchingNewInstances = [i for i in self.configManager.instances() if i['name'] == newInstanceName]
+
+            if len(matchingNewInstances) == 0:
+                shutil.copytree(self.getInstancePath(instanceName), self.getInstancePath(newInstanceName))
+
+                self.configManager.instances().append(
+                    {'name': newInstanceName, 'version': matchingInstances[0]['version']})
+                self.configManager.persist()
+            else:
+                self.logger.error('An instance with name [{}] already exists'.fomat(newInstanceName))
+        else:
+            self.logger.error('The instance name [{}] is invalid'.format(instanceName))
+
     def __startInstance(self, instanceName, debug=False):
         startScript = 'start_xwiki_debug.sh' if debug else 'start_xwiki.sh'
 
