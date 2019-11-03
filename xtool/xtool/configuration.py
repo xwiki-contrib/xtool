@@ -115,7 +115,7 @@ class ConfigManager:
         self.config['snapshots'] = [s.config for s in self.snapshots]
 
         # Sort the versions by their number
-        self.config['versions'] = sorted(self.config['versions'], key=lambda x: version.Version(x))
+        self.config['versions'] = sorted(self.config['versions'], key=lambda x: version.parse(x))
 
         # Sort the instances alphebetically
         self.config['instances'] = sorted(self.config['instances'], key=lambda x: x['name'])
