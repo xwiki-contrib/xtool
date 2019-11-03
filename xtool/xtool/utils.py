@@ -1,6 +1,8 @@
 # Define a set of utility functions to initialize the environment
 import argparse
+import binascii
 import logging
+import os
 import sys
 
 
@@ -28,6 +30,10 @@ def valid_config(configArg):
         return False
     else:
         return configArg
+
+
+def random_chars(numberOfChars):
+    return binascii.b2a_hex(os.urandom(numberOfChars)).decode('UTF-8')
 
 
 def parse_args():
@@ -65,6 +71,10 @@ def parse_args():
                                 help='the name of the instance to snapshot or the name of the snapshot to restore')
     snapshotParser.add_argument('-o', '--overwrite', action='store_true',
                                 help='overwrite an existing instance if needed')
+
+    upgradeParser = subParsers.add_parser('upgrade', help='upgrade an existing instance to a newer version')
+    upgradeParser.add_argument('instance_name', help='the name of the instance to upgrade')
+    upgradeParser.add_argument('version', help='the version to which the instance should be upgraded')
 
     startParser = subParsers.add_parser('start', help='start an instance')
     startParser.add_argument('entity_name',

@@ -7,6 +7,8 @@ import zipfile
 
 from environment import Environment
 
+from utils import random_chars
+
 
 class InstanceManager:
     logger = logging.getLogger('InstanceManager')
@@ -24,6 +26,20 @@ class InstanceManager:
         for instance in self.configManager.instances():
             print(rowFormat.format(instance['name'], instance['version']))
 
+    def extractVersion(self, version, instancePath):
+        self.logger.debug('Unzipping version in {}'.format(instancePath))
+        zipRef = zipfile.ZipFile(self.versionManager.getArchivePath(version), 'r')
+        zipRef.extractall(Environment.instancesDir)
+        zipRef.close()
+
+        os.rename('{}/{}'.format(Environment.instancesDir,
+                                 self.versionManager.getArchiveBaseName(version)), instancePath)
+
+        # Mark the execution scripts executable
+        os.chmod('{}/start_xwiki.sh'.format(instancePath), 0o755)
+        os.chmod('{}/start_xwiki_debug.sh'.format(instancePath), 0o755)
+        os.chmod('{}/stop_xwiki.sh'.format(instancePath), 0o755)
+
     def create(self, instanceName, version):
         # Check if the name is not already taken
         if instanceName in [instance['name'] for instance in self.configManager.instances()]:
@@ -36,18 +52,7 @@ class InstanceManager:
         # Now we are sure to have a version available.
         # Get the file and unzip it
         instanceFinalPath = self.getInstancePath(instanceName)
-        self.logger.debug('Unzipping version in {}'.format(instanceFinalPath))
-        zipRef = zipfile.ZipFile(self.versionManager.getArchivePath(version), 'r')
-        zipRef.extractall(Environment.instancesDir)
-        zipRef.close()
-        os.rename('{}/{}'.format(Environment.instancesDir,
-                                 self.versionManager.getArchiveBaseName(version)),
-                  instanceFinalPath)
-
-        # Mark the execution scripts executable
-        os.chmod('{}/start_xwiki.sh'.format(instanceFinalPath), 0o755)
-        os.chmod('{}/start_xwiki_debug.sh'.format(instanceFinalPath), 0o755)
-        os.chmod('{}/stop_xwiki.sh'.format(instanceFinalPath), 0o755)
+        self.extractVersion(version, instanceFinalPath)
 
         # Update the configuration to record the new instance
         self.configManager.instances().append({'name': instanceName, 'version': version})
@@ -76,10 +81,14 @@ class InstanceManager:
 
         if len(matchingInstances) == 1:
             # Verify that no instance exists with the new name
-            matchingNewInstances = [i for i in self.configManager.instances() if i['name'] == newInstanceName]
+            matchingNewInstances = ([i for i in self.configManager.instances()
+                if i['name'] == newInstanceName])
 
             if len(matchingNewInstances) == 0:
-                shutil.copytree(self.getInstancePath(instanceName), self.getInstancePath(newInstanceName))
+                self.logger.info('Creating copy of [{}] with name [{}] ...'
+                    .format(instanceName, newInstanceName))
+                shutil.copytree(self.getInstancePath(instanceName),
+                    self.getInstancePath(newInstanceName))
 
                 self.configManager.instances().append(
                     {'name': newInstanceName, 'version': matchingInstances[0]['version']})
@@ -114,7 +123,7 @@ class InstanceManager:
             # Check that the entityName is a version
             if entityName in self.configManager.versions():
                 # Generate a temporary instance id
-                instanceName = 'xtool-{}'.format(binascii.b2a_hex(os.urandom(4)).decode('UTF-8'))
+                instanceName = 'xtool-{}'.format(random_chars(4))
                 self.create(instanceName, entityName)
                 self.__startInstance(instanceName, debug)
                 if temp:

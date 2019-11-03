@@ -6,6 +6,7 @@ from configuration import ConfigManager
 from execution import ExecEnvironment
 from instances import InstanceManager
 from snapshots import SnapshotManager
+from upgrade import UpgradeManager
 from versions import VersionManager
 
 from utils import init_logger
@@ -19,6 +20,7 @@ cm = ConfigManager()
 vm = VersionManager(cm)
 im = InstanceManager(cm, vm)
 sm = SnapshotManager(cm, vm, im)
+um = UpgradeManager(cm, vm, im)
 ex = ExecEnvironment()
 
 logger.debug('Arguments : {}'.format(args))
@@ -58,3 +60,5 @@ elif ('start'.startswith(args.action)):
         logger.error('Unable to determine the name of the instance to start.')
 elif ('remove'.startswith(args.action)):
     im.remove(args.instance_name)
+elif ('upgrade'.startswith(args.action)):
+    um.upgrade(args.instance_name, args.version)
