@@ -7,7 +7,7 @@ Provide a set of tools to manage local XWiki installations
 ### On Debian
 
 * `python3`
-* `virtualenv` or `virtualenv3`
+* `python3-virtualenv`
 
 ## Installation
 
