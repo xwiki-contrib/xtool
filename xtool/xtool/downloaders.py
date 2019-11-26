@@ -2,9 +2,12 @@ import hashlib
 import logging
 import os
 from packaging import version as Version
+from tqdm import tqdm
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+
+from utils import tqdm_download_hook
 
 
 # Handles the download of an XWiki version
@@ -58,7 +61,8 @@ class VersionDownloader:
 
             # Actually download the archive
             self.logger.info('Downloading file [{}] ...'.format(fileURL))
-            urllib.request.urlretrieve(fileURL, destinationPath)
+            with tqdm(unit='B', unit_scale=True, unit_divisor=1024, miniters=1) as t:
+                urllib.request.urlretrieve(fileURL, destinationPath, reporthook=tqdm_download_hook(t))
             fileMD5Sum = self.__computeChecksum(destinationPath)
 
             # Verify the control sum of the downloaded file

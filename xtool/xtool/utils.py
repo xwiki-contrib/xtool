@@ -36,6 +36,20 @@ def random_chars(numberOfChars):
     return binascii.b2a_hex(os.urandom(numberOfChars)).decode('UTF-8')
 
 
+def tqdm_download_hook(t):
+    # Code snippet taken from
+    # https://github.com/tqdm/tqdm/blob/cd7f61b4562fb2f4aad560edf094a2ddad1ae3b7/examples/tqdm_wget.py#L28
+    last_b = [0]
+
+    def update_to(b=1, bsize=1, tsize=None):
+        if tsize not in (None, -1):
+            t.total = tsize
+        t.update((b - last_b[0]) * bsize)
+        last_b[0] = b
+
+    return update_to
+
+
 def parse_args():
     rootParser = argparse.ArgumentParser(prog='x',
                                          description='Provide a set of tools to manage local XWiki installations')
