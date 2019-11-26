@@ -27,6 +27,7 @@ class InstanceManager:
         for instance in sortedInstances:
             if currentVersion is None or currentVersion != instance['version']:
                 print('{}:'.format(instance['version']))
+                currentVersion = instance['version']
             print('  - {}'.format(instance['name']))
 
     def extractVersion(self, version, instancePath):
