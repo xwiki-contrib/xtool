@@ -1,4 +1,3 @@
-import binascii
 import logging
 import os
 import shutil
@@ -6,6 +5,7 @@ import subprocess
 import zipfile
 
 from environment import Environment
+import packaging.version
 
 from utils import random_chars
 
@@ -21,10 +21,13 @@ class InstanceManager:
         return '{}/{}'.format(Environment.instancesDir, instanceName)
 
     def list(self):
-        rowFormat = '{:<25}| {:<25}'
-        print(rowFormat.format('Name', 'Version'))
-        for instance in self.configManager.instances():
-            print(rowFormat.format(instance['name'], instance['version']))
+        # Sort the instances by version
+        sortedInstances = sorted(self.configManager.instances(), key=lambda x: packaging.version.parse(x['version']))
+        currentVersion = None
+        for instance in sortedInstances:
+            if currentVersion is None or currentVersion != instance['version']:
+                print('{}:'.format(instance['version']))
+            print('  - {}'.format(instance['name']))
 
     def extractVersion(self, version, instancePath):
         self.logger.debug('Unzipping version in {}'.format(instancePath))
@@ -82,13 +85,13 @@ class InstanceManager:
         if len(matchingInstances) == 1:
             # Verify that no instance exists with the new name
             matchingNewInstances = ([i for i in self.configManager.instances()
-                if i['name'] == newInstanceName])
+                                    if i['name'] == newInstanceName])
 
             if len(matchingNewInstances) == 0:
                 self.logger.info('Creating copy of [{}] with name [{}] ...'
-                    .format(instanceName, newInstanceName))
+                                 .format(instanceName, newInstanceName))
                 shutil.copytree(self.getInstancePath(instanceName),
-                    self.getInstancePath(newInstanceName))
+                                self.getInstancePath(newInstanceName))
 
                 self.configManager.instances().append(
                     {'name': newInstanceName, 'version': matchingInstances[0]['version']})
