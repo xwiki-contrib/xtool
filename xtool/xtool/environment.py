@@ -1,5 +1,6 @@
 import os
 
+
 class Environment:
     configDir = '{}/.xtool/config'.format(os.getenv("HOME"))
     configFilePath = '{}/config.json'.format(configDir)
