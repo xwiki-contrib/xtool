@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import subprocess
+import time
 import zipfile
 
 from environment import Environment
@@ -105,15 +106,32 @@ class InstanceManager:
     def __startInstance(self, instanceName, debug=False):
         startScript = 'start_xwiki_debug.sh' if debug else 'start_xwiki.sh'
 
-        try:
-            # Check if the instance exists
-            instancePath = self.getInstancePath(instanceName)
-            if os.path.isdir(instancePath):
-                subprocess.call(['{}/./{}'.format(instancePath, startScript)])
-            else:
-                self.logger.error('The instance [{}] folder does not exists.'.format(instanceName))
-        except KeyboardInterrupt:
-            self.logger.debug('Instance has been killed.')
+        # Check if the instance exists
+        instancePath = self.getInstancePath(instanceName)
+        if os.path.isdir(instancePath):
+            with subprocess.Popen(['{}/./{}'.format(instancePath, startScript)]) as instanceProcess:
+                try:
+                    while instanceProcess.poll() is None:
+                        time.sleep(5)
+                    self.logger.debug('Instance has terminated by itself with return code : [{}]'
+                                      .format(instanceProcess.poll()))
+                except KeyboardInterrupt:
+                    self.logger.debug('Interrupt recieved, terminating the instance ...')
+                    instanceProcess.terminate()
+                    try:
+                        # Give 10 seconds for the instance to stop, else, kill it
+                        instanceProcess.wait(10)
+                    except subprocess.TimeoutExpired:
+                        self.logger.debug('Failed to terminate within 10 seconds, killing the instance ...')
+                        instanceProcess.kill()
+
+                    returnCode = instanceProcess.poll()
+                    if returnCode is None:
+                        self.logger.error('Failed to kill the instance.')
+                    else:
+                        self.logger.debug('Instance return code : [{}]'.format(returnCode))
+        else:
+            self.logger.error('The instance [{}] folder does not exists.'.format(instanceName))
 
     def start(self, entityName, debug=False, temp=False):
         # In case debug mode is forced by the config, force it
