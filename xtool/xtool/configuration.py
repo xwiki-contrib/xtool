@@ -110,8 +110,8 @@ class ConfigManager:
 
     def persist(self):
         # Collect the potenial changes in the entities
-        #self.config['versions'] = [v.config for v in self.versions]
-        #self.config['instances'] = [i.config for i in self.instances]
+        # self.config['versions'] = [v.config for v in self.versions]
+        # self.config['instances'] = [i.config for i in self.instances]
         self.config['snapshots'] = [s.config for s in self.snapshots]
 
         # Sort the versions by their number

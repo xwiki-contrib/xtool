@@ -2,13 +2,15 @@ from shutil import get_unpack_formats
 
 from environment import Environment
 
-"""
-An entity can be a version of XWiki, an instance, a snapshot, …
-We wrap the data structures contained in the configuration files in entities so that
-we can use helper functions to quickly access computed attributes of an entity.
-Entity objects rely directly on their configuration data structure (self.config).
-"""
+
 class Entity:
+    """
+    An entity can be a version of XWiki, an instance, a snapshot, …
+    We wrap the data structures contained in the configuration files in entities so that
+    we can use helper functions to quickly access computed attributes of an entity.
+    Entity objects rely directly on their configuration data structure (self.config).
+    """
+
     def __init__(self, config):
         self.config = config
 
@@ -27,7 +29,7 @@ class Snapshot(Entity):
         availableFormats = get_unpack_formats()
         for format in availableFormats:
             if format[0] == self.config['format']:
-                ## TODO: Refactor to allow check on any possible format
+                # TODO: Refactor to allow check on any possible format
                 return format[1][0]
         return ''
 

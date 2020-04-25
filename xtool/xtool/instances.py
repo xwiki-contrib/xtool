@@ -120,8 +120,8 @@ class InstanceManager:
                         time.sleep(5)
                     self.logger.debug('Instance has terminated by itself with return code : [{}]'
                                       .format(instanceProcess.poll()))
-                except KeyboardInterrupt:
-                    self.logger.debug('Interrupt recieved, terminating the instance ...')
+                except KeyboardInterrupt as interrupt:
+                    self.logger.debug('Interrupt [{}] recieved, terminating the instance ...'.format(interrupt))
                     instanceProcess.terminate()
                     try:
                         # Give 10 seconds for the instance to stop, else, kill it
