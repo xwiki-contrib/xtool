@@ -142,6 +142,12 @@ def parse_args():
 
     # Remove action
     removeParser = subParsers.add_parser('remove', help='remove an entity')
-    removeParser.add_argument('instance_name', help='the name of the instnace to remove')
+    removeParser.add_argument('-i', '--instance', action='store_true', help='remove an instance')
+    removeParser.add_argument('entity_name', help='the name of the entity to remove')
+
+    # Entity-related parsers
+    instanceParser = subParsers.add_parser('instance', help='manage instances')
+
+    versionParser = subParsers.add_parser('version', help='manage versions')
 
     return rootParser.parse_args()

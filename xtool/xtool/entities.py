@@ -36,7 +36,7 @@ class Snapshot(Entity):
     def getFileName(self, includeExtension=True):
         if includeExtension:
             return '{}{}'.format(self.config['name'],
-                                  self.getFileExtension())
+                                 self.getFileExtension())
         else:
             return self.config['name']
 

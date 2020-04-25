@@ -4,10 +4,10 @@ import logging
 
 from configuration import ConfigManager
 from execution import ExecEnvironment
-from instances import InstanceManager
-from snapshots import SnapshotManager
-from upgrade import UpgradeManager
-from versions import VersionManager
+from instance.manager import InstanceManager
+from snapshot.manager import SnapshotManager
+from instance.upgrade import UpgradeManager
+from version.manager import VersionManager
 
 from utils import init_logger
 from utils import parse_args

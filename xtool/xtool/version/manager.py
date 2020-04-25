@@ -3,8 +3,8 @@ from packaging import version as Version
 
 from environment import Environment
 
-from downloaders import VersionDownloader
-from downloaders import SnapshotVersionDownloader
+from version.downloaders import VersionDownloader
+from version.downloaders import SnapshotVersionDownloader
 
 
 class VersionManager:

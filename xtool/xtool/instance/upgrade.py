@@ -7,6 +7,7 @@ from packaging import version
 
 from utils import random_chars
 
+
 class UpgradeManager:
     logger = logging.getLogger('UpgradeManager')
 
@@ -27,7 +28,6 @@ class UpgradeManager:
             shutil.copyfile(originalFilePath, suffixedFilePath)
             self.logger.info('Created copy of the original file in [{}]'.format(suffixedFilePath))
 
-
     def upgrade(self, instanceName, newVersion):
         # Get the instance
         matchingInstances = [i for i in self.configManager.instances() if i['name'] == instanceName]
@@ -44,7 +44,7 @@ class UpgradeManager:
 
                 if self.versionManager.hasVersion(newVersion):
                     self.logger.info('Starting to upgrade instance [{}] to version [{}] ...'
-                        .format(instanceName, newVersion))
+                                     .format(instanceName, newVersion))
                     # Actually start the upgrade
                     # Create a random suffixed instance name
                     tempInstanceName = '{}-{}'.format(instanceName, random_chars(4))

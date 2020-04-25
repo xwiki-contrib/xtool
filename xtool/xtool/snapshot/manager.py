@@ -7,7 +7,6 @@ import shutil
 import tempfile
 import zipfile
 
-from environment import Environment
 from entities import Snapshot
 
 
