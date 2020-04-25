@@ -130,6 +130,10 @@ def parse_args():
     )
     startParser.add_argument('-d', '--debug', action='store_true', help='toggle debug mode')
     startParser.add_argument(
+        '-p', '--port',
+        help='specify a port on which the instance should be started'
+    )
+    startParser.add_argument(
         '-t', '--temp',
         action='store_true',
         help=('start a temporary instance: xtool will create a random instance name with the given version and start '

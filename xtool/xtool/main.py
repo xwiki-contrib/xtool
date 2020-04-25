@@ -53,9 +53,9 @@ elif ('snapshot'.startswith(args.action)):
 elif ('start'.startswith(args.action)):
     # Check if we have an explicit instance name, else, use the environment
     if args.entity_name:
-        im.start(args.entity_name, args.debug, args.temp)
+        im.start(args.entity_name, args.port, args.debug, args.temp)
     elif ex.getInferredInstanceName():
-        im.start(ex.getInferredInstanceName(), args.debug)
+        im.start(ex.getInferredInstanceName(), args.port, args.debug)
     else:
         logger.error('Unable to determine the name of the instance to start.')
 elif ('remove'.startswith(args.action)):
