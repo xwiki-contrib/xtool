@@ -9,6 +9,10 @@ from packaging import version
 from entities import Snapshot
 
 
+class PreferenceNotFoundError(Exception):
+    pass
+
+
 class ConfigManager:
     logger = logging.getLogger('ConfigManager')
 

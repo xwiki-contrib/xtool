@@ -24,33 +24,33 @@ um = UpgradeManager(cm, vm, im)
 ex = ExecEnvironment()
 
 logger.debug('Arguments : {}'.format(args))
-if ('list'.startswith(args.action)):
-    if ('versions'.startswith(args.entity)):
+if (args.action == 'list'):
+    if (args.action == 'versions'):
         vm.list()
-    elif ('instances'.startswith(args.entity)):
+    elif (args.action == 'instances'):
         im.list()
-    elif ('snapshots'.startswith(args.entity)):
+    elif (args.action == 'snapshots'):
         sm.list()
-elif ('download'.startswith(args.action)):
+elif (args.action == 'download'):
     vm.download(args.version)
-elif ('config'.startswith(args.action)):
+elif (args.action == 'config'):
     if args.set is not None:
         cm.set(args.property_name, args.set)
         cm.persist()
     else:
         print(cm.get(args.property_name))
-elif ('copy'.startswith(args.action)):
+elif (args.action == 'copy'):
     im.copy(args.instance_name, args.new_instance_name)
-elif ('create'.startswith(args.action)):
+elif (args.action == 'create'):
     im.create(args.instance_name, args.version)
-elif ('edit'.startswith(args.action)):
+elif (args.action == 'edit'):
     im.edit(args.instance_name, args.file)
-elif ('snapshot'.startswith(args.action)):
-    if ('create'.startswith(args.snapshot_action)):
+elif (args.action == 'snapshot'):
+    if (args.action == 'create'):
         sm.create(args.entity_name)
-    if ('restore'.startswith(args.snapshot_action)):
+    if (args.action == 'restore'):
         sm.restore(args.entity_name, args.overwrite)
-elif ('start'.startswith(args.action)):
+elif (args.action == 'start'):
     # Check if we have an explicit instance name, else, use the environment
     if args.entity_name:
         im.start(args.entity_name, args.port, args.debug, args.temp)
@@ -58,7 +58,7 @@ elif ('start'.startswith(args.action)):
         im.start(ex.getInferredInstanceName(), args.port, args.debug)
     else:
         logger.error('Unable to determine the name of the instance to start.')
-elif ('remove'.startswith(args.action)):
+elif (args.action == 'remove'):
     im.remove(args.instance_name)
-elif ('upgrade'.startswith(args.action)):
+elif (args.action == 'upgrade'):
     um.upgrade(args.instance_name, args.version)
