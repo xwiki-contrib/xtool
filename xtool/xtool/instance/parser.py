@@ -1,3 +1,5 @@
+import logging
+
 from parser import Parser
 
 
@@ -5,6 +7,8 @@ class InstanceParser(Parser):
     """
     Parser for instance-related actions.
     """
+
+    logger = logging.getLogger('InstanceParser')
 
     """
     See Parsers#addActions()
@@ -59,6 +63,28 @@ class InstanceParser(Parser):
                                                   'or `hibernate.xml`'))
 
             # Copy action
-            copyParser = subParsers.add_parser('copy', aliases=['c'], help='copy an instance')
+            copyParser = subParsers.add_parser('copy', aliases=['cp'], help='copy an instance')
             copyParser.add_argument('instance_name', help='the name of the instance to copy')
             copyParser.add_argument('new_instance_name', help='the new name of the instance')
+
+    """
+    See Parsers#handleArgs()
+    """
+    def handleArgs(self, args, action):
+        if action in ['create', 'c']:
+            self.instanceManager.create(args.instance_name, args.version)
+        elif action in ['start', 's']:
+            # Check if we have an explicit instance name, else, use the environment
+            if args.entity_name:
+                self.instanceManager.start(args.entity_name, args.port, args.debug, args.temp)
+            elif self.execEnvironment.getInferredInstanceName():
+                self.instanceManager.start(
+                    self.execEnvironment.getInferredInstanceName(), args.port, args.debug)
+            else:
+                self.logger.error('Unable to determine the name of the instance to start.')
+        elif action in ['upgrade', 'u']:
+            self.upgradeManager.upgrade(args.instance_name, args.version)
+        elif action in ['edit', 'e']:
+            self.instanceManager.edit(args.instance_name, args.file)
+        elif action in ['copy', 'cp']:
+            self.instanceManager.copy(args.instance_name, args.new_instance_name)

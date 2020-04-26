@@ -103,7 +103,7 @@ def parse_args():
     instanceSubParsers = instanceParser.add_subparsers(dest='subAction', required=True, help='the action to perform')
     InstanceParser.addActions(instanceSubParsers)
 
-    snapshotParser = subParsers.add_parser('snapshot', aliases=['sn'], help='manage instance snapshots')
+    snapshotParser = subParsers.add_parser('snapshot', aliases=['sp'], help='manage instance snapshots')
     snapshotSubParsers = snapshotParser.add_subparsers(dest='subAction', required=True, help='the action to perform')
     SnapshotParser.addActions(snapshotSubParsers)
 

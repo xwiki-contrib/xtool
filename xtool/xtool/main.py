@@ -8,6 +8,9 @@ from instance.manager import InstanceManager
 from snapshot.manager import SnapshotManager
 from instance.upgrade import UpgradeManager
 from version.manager import VersionManager
+from version.parser import VersionParser
+from instance.parser import InstanceParser
+from snapshot.parser import SnapshotParser
 
 from utils import init_logger
 from utils import parse_args
@@ -23,42 +26,38 @@ sm = SnapshotManager(cm, vm, im)
 um = UpgradeManager(cm, vm, im)
 ex = ExecEnvironment()
 
+vp = VersionParser(cm, vm, im, sm, um, ex)
+ip = InstanceParser(cm, vm, im, sm, um, ex)
+sp = SnapshotParser(cm, vm, im, sm, um, ex)
+
 logger.debug('Arguments : {}'.format(args))
-if (args.action == 'list'):
-    if (args.action == 'versions'):
+if (args.action in ['list', 'l']):
+    if (args.entity == 'versions'):
         vm.list()
-    elif (args.action == 'instances'):
+    elif (args.entity == 'instances'):
         im.list()
-    elif (args.action == 'snapshots'):
+    elif (args.entity == 'snapshots'):
         sm.list()
-elif (args.action == 'download'):
-    vm.download(args.version)
+# Shortcuts for accessing entities actions
+elif (args.action in ['download', 'd']):
+    vp.handleArgs(args, args.action)
+elif (args.action in ['create', 'c', 'start', 's']):
+    ip.handleArgs(args, args.action)
+elif (args.action in ['snapshot', 'sp']):
+    sp.handleArgs(args, args.action)
+# Delegation to entity sub parsers
+elif (args.action == 'version'):
+    vp.handleArgs(args, args.subAction)
+elif (args.action == 'instance'):
+    ip.handleArgs(args, args.subAction)
+elif (args.action == 'snapshot'):
+    sp.handleArgs(args, args.subAction)
+# Generic methods
+elif (args.action == 'remove'):
+    im.remove(args.instance_name)
 elif (args.action == 'config'):
     if args.set is not None:
         cm.set(args.property_name, args.set)
         cm.persist()
     else:
         print(cm.get(args.property_name))
-elif (args.action == 'copy'):
-    im.copy(args.instance_name, args.new_instance_name)
-elif (args.action == 'create'):
-    im.create(args.instance_name, args.version)
-elif (args.action == 'edit'):
-    im.edit(args.instance_name, args.file)
-elif (args.action == 'snapshot'):
-    if (args.action == 'create'):
-        sm.create(args.entity_name)
-    if (args.action == 'restore'):
-        sm.restore(args.entity_name, args.overwrite)
-elif (args.action == 'start'):
-    # Check if we have an explicit instance name, else, use the environment
-    if args.entity_name:
-        im.start(args.entity_name, args.port, args.debug, args.temp)
-    elif ex.getInferredInstanceName():
-        im.start(ex.getInferredInstanceName(), args.port, args.debug)
-    else:
-        logger.error('Unable to determine the name of the instance to start.')
-elif (args.action == 'remove'):
-    im.remove(args.instance_name)
-elif (args.action == 'upgrade'):
-    um.upgrade(args.instance_name, args.version)

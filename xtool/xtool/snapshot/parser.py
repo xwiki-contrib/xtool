@@ -1,3 +1,5 @@
+import logging
+
 from parser import Parser
 
 
@@ -5,6 +7,8 @@ class SnapshotParser(Parser):
     """
     Parser for snapshot-related actions.
     """
+
+    logger = logging.getLogger('SnapshotParser')
 
     """
     See Parsers#addActions()
@@ -25,3 +29,12 @@ class SnapshotParser(Parser):
             )
             restoreParser.add_argument('-o', '--overwrite', action='store_true',
                                        help='overwrite an existing instance if needed')
+
+    """
+    See Parsers#handleArgs()
+    """
+    def handleArgs(self, args, action):
+        if (action in ['create', 'c']):
+            self.snapshotManager.create(args.entity_name)
+        elif (action in ['restore', 'r']):
+            self.snapshotManager.restore(args.entity_name, args.overwrite)

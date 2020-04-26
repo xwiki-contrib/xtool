@@ -1,3 +1,5 @@
+import logging
+
 from parser import Parser
 
 
@@ -5,6 +7,8 @@ class VersionParser(Parser):
     """
     Parser for versions-related actions.
     """
+
+    logger = logging.getLogger('VersionParser')
 
     """
     See Parsers#addActions()
@@ -16,5 +20,9 @@ class VersionParser(Parser):
         downloadParser = subParsers.add_parser('download', aliases=['d'], help='download a new version')
         downloadParser.add_argument('version', help='the XWiki version to download')
 
-        if not topLevel:
-            pass
+    """
+    See Parsers#handleArgs()
+    """
+    def handleArgs(self, args, action):
+        if action in ['download', 'd']:
+            self.versionManager.download(args.version)
