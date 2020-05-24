@@ -54,7 +54,7 @@ elif (args.action == 'snapshot'):
     sp.handleArgs(args, args.subAction)
 # Generic methods
 elif (args.action == 'remove'):
-    im.remove(args.instance_name)
+    im.remove(args.entity_name)
 elif (args.action == 'config'):
     if args.set is not None:
         cm.set(args.property_name, args.set)
