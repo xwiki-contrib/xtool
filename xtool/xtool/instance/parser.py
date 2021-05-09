@@ -67,6 +67,10 @@ class InstanceParser(Parser):
             copyParser.add_argument('instance_name', help='the name of the instance to copy')
             copyParser.add_argument('new_instance_name', help='the new name of the instance')
 
+            # Remove action
+            removeParser = subParsers.add_parser('remove', aliases=['rm'], help='remove an entity')
+            removeParser.add_argument('instance_name', help='the name of the instance to remove')
+
     """
     See Parsers#handleArgs()
     """
@@ -88,3 +92,5 @@ class InstanceParser(Parser):
             self.instanceManager.edit(args.instance_name, args.file)
         elif action in ['copy', 'cp']:
             self.instanceManager.copy(args.instance_name, args.new_instance_name)
+        elif (action in ['remove', 'rm']):
+            self.instanceManager.remove(args.instance_name)
