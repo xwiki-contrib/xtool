@@ -34,7 +34,7 @@ class SnapshotParser(Parser):
     See Parsers#handleArgs()
     """
     def handleArgs(self, args, action):
-        if (action in ['create', 'c']):
+        if action in ['create', 'c']:
             self.snapshotManager.create(args.entity_name)
-        elif (action in ['restore', 'r']):
+        elif action in ['restore', 'r']:
             self.snapshotManager.restore(args.entity_name, args.overwrite)
