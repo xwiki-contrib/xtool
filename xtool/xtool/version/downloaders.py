@@ -1,4 +1,3 @@
-import hashlib
 import logging
 import os
 from packaging import version as Version
@@ -7,6 +6,7 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
+from utils import compute_checksum
 from utils import tqdm_download_hook
 
 
@@ -21,17 +21,6 @@ class VersionDownloader:
 
         self.versionManager = versionManager
         self.versionCategory = category
-
-    # Return the MD5 sum of a file
-    def __computeChecksum(self, path):
-        with open(path, 'rb') as f:
-            digest = hashlib.md5()
-            while True:
-                data = f.read(8192)
-                if not data:  # In case we're at the end of the file
-                    break
-                digest.update(data)
-            return digest.hexdigest()
 
     def _generateFolderLink(self):
         if self.version.endswith('-SNAPSHOT') or Version.parse(self.version) >= self.versionManager.migrationVersion:
@@ -63,7 +52,7 @@ class VersionDownloader:
             self.logger.info('Downloading file [{}] ...'.format(fileURL))
             with tqdm(unit='B', unit_scale=True, unit_divisor=1024, miniters=1) as t:
                 urllib.request.urlretrieve(fileURL, destinationPath, reporthook=tqdm_download_hook(t))
-            fileMD5Sum = self.__computeChecksum(destinationPath)
+            fileMD5Sum = compute_checksum(destinationPath)
 
             # Verify the control sum of the downloaded file
             self.logger.debug('Checking file integrity ...')

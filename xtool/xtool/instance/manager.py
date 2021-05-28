@@ -1,13 +1,14 @@
+import glob
 import logging
 import os
 import shutil
 import subprocess
 import time
-import zipfile
 
 from environment import Environment
 import packaging.version
 
+from utils import compute_checksum
 from utils import random_chars
 
 
@@ -31,24 +32,44 @@ class InstanceManager:
                 currentVersion = instance['version']
             print('  - {}'.format(instance['name']))
 
-    def extractVersion(self, version, instancePath):
-        self.logger.debug('Unzipping version in {}'.format(instancePath))
-        zipRef = zipfile.ZipFile(self.versionManager.getArchivePath(version), 'r')
-        zipRef.extractall(Environment.instancesDir)
-        zipRef.close()
+    def linkInstanceToVersion(self, instanceName, instancePath, versionPath):
+        self.logger.info('Symlinking the instance [{}] in order to reduce storage space'.format(instanceName))
+        # Go through each file that is present in the instancePath and that has a linkable extension ;
+        # Check if an equivalent exists in the versionPath.
+        # If an equivalent exists and has the same md5sum, remove the jar from the instance and replace it with a
+        # symlink to the version
+        absoluteInstancePath = os.path.abspath(instancePath)
+        for linkableFileExtension in self.configManager.get('linkableFileExtensions'):
+            for file in glob.glob('{}/**/*.{}'.format(instancePath, linkableFileExtension), recursive=True):
+                if not os.path.isdir(file):
+                    # Compute the file absolute
+                    absoluteFilePath = os.path.abspath(file)
+                    relativeFilePath = absoluteFilePath[len(absoluteInstancePath)+1:]
+                    versionFilePath = '{}/{}'.format(versionPath, relativeFilePath)
 
-        os.rename('{}/{}'.format(Environment.instancesDir,
-                                 self.versionManager.getArchiveBaseName(version)), instancePath)
+                    if (os.path.exists(versionFilePath)
+                            and (compute_checksum(absoluteFilePath) == compute_checksum(versionFilePath))):
+                        # Replace the file
+                        self.logger.debug('Replacing file [{}] with symlink to [{}]'
+                                          .format(absoluteFilePath, versionFilePath))
+                        os.remove(absoluteFilePath)
+                        os.symlink(versionFilePath, absoluteFilePath)
 
-        # Mark the execution scripts executable
-        os.chmod('{}/start_xwiki.sh'.format(instancePath), 0o755)
-        os.chmod('{}/start_xwiki_debug.sh'.format(instancePath), 0o755)
-        os.chmod('{}/stop_xwiki.sh'.format(instancePath), 0o755)
+    def symlink(self, instanceName):
+        instance = self.configManager.getInstance(instanceName)
+        if (instance is None):
+            self.logger.error('The instance with name [{}] does not exist.', instanceName)
+        else:
+            self.versionManager.ensureVersion(instance['version'])
+            self.linkInstanceToVersion(instanceName,
+                                       self.getInstancePath(instanceName),
+                                       self.versionManager.getDirectoryPath(instance['version']))
+            self.logger.info('The instance with name [{}] has been symlinked'.format(instanceName))
 
     def create(self, instanceName, version):
         # Check if the name is not already taken
         if instanceName in [instance['name'] for instance in self.configManager.instances()]:
-            self.logger.error('An instance with name {} already exists. Aborting.'.format(instanceName))
+            self.logger.error('An instance with name [{}] already exists. Aborting.'.format(instanceName))
             return
 
         # First, check if we have the corresponding version
@@ -56,14 +77,17 @@ class InstanceManager:
 
         # Now we are sure to have a version available.
         # Get the file and unzip it
-        instanceFinalPath = self.getInstancePath(instanceName)
-        self.extractVersion(version, instanceFinalPath)
+        instancePath = self.getInstancePath(instanceName)
+        versionPath = self.versionManager.getDirectoryPath(version)
+        shutil.copytree(versionPath, instancePath)
+        if self.configManager.get('linkInstanceStorage'):
+            self.linkInstanceToVersion(instanceName, instancePath, versionPath)
 
         # Update the configuration to record the new instance
         self.configManager.instances().append({'name': instanceName, 'version': version})
         self.configManager.persist()
 
-        self.logger.info('Instance {} created in {}'.format(instanceName, instanceFinalPath))
+        self.logger.info('Instance {} created in {}'.format(instanceName, instancePath))
 
     def edit(self, instanceName, fileName):
         # Try first to determine the editor that we will have to use

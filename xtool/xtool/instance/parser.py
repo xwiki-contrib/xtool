@@ -71,6 +71,20 @@ class InstanceParser(Parser):
             removeParser = subParsers.add_parser('remove', aliases=['rm'], help='remove an entity')
             removeParser.add_argument('instance_name', help='the name of the instance to remove')
 
+            # Symlink action
+            symlinkParser = subParsers.add_parser('symlink', aliases=['sym'], help=('symlink files in the instance to'
+                                                                                    'their equivalent in the version'))
+            symlinkParser.add_argument(
+                '-i',
+                '--instance',
+                help='the name of the instance to symlink'
+            )
+            symlinkParser.add_argument(
+                '--all',
+                action='store_true',
+                help='symlink all instances'
+            )
+
     """
     See Parsers#handleArgs()
     """
@@ -94,3 +108,11 @@ class InstanceParser(Parser):
             self.instanceManager.copy(args.instance_name, args.new_instance_name)
         elif (action in ['remove', 'rm']):
             self.instanceManager.remove(args.instance_name)
+        elif (action in ['symlink', 'sym']):
+            if args.all:
+                for instance in self.configManager.instances():
+                    self.instanceManager.symlink(instance['name'])
+            elif args.instance is not None:
+                self.instanceManager.symlink(args.instance)
+            else:
+                self.logger.error('Unable to determine the instance to symlink.')

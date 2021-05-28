@@ -1,6 +1,7 @@
 # Define a set of utility functions to initialize the environment
 import argparse
 import binascii
+import hashlib
 import logging
 import os
 import sys
@@ -54,6 +55,18 @@ def tqdm_download_hook(t):
     return update_to
 
 
+# Return the MD5 sum of a file
+def compute_checksum(path):
+    with open(path, 'rb') as f:
+        digest = hashlib.md5()
+        while True:
+            data = f.read(8192)
+            if not data:  # In case we're at the end of the file
+                break
+            digest.update(data)
+        return digest.hexdigest()
+
+
 def parse_args():
     rootParser = argparse.ArgumentParser(
         prog='x',
@@ -88,11 +101,6 @@ def parse_args():
     configParser = subParsers.add_parser('config', help='view or edit the tool configuration')
     configParser.add_argument('property_name', help='the name of the property')
     configParser.add_argument('-s', '--set', metavar='VALUE', type=valid_config, help='set the value of the property')
-
-    # Remove action
-    removeParser = subParsers.add_parser('remove', help='remove an entity')
-    removeParser.add_argument('-i', '--instance', action='store_true', help='remove an instance')
-    removeParser.add_argument('entity_name', help='the name of the entity to remove')
 
     # Entity-related parsers
     versionParser = subParsers.add_parser('version', aliases=['v'], help='manage versions')

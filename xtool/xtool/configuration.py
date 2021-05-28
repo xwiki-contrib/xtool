@@ -23,7 +23,9 @@ class ConfigManager:
         'preferences': {
             'editor': None,
             'debug': False,
-            'snapshot-format': 'xztar'
+            'linkInstanceStorage': True,
+            'snapshot-format': 'xztar',
+            'linkableFileExtensions': ['jar', 'xar', 'xed', 'vm', 'js', 'css', 'less', 'png', 'gif', 'ttf', 'ttc']
         }
     }
 
@@ -48,6 +50,13 @@ class ConfigManager:
         for property in propertiesToCheck:
             if property not in configKeys:
                 self.config[property] = self.defaultConfig[property]
+
+        # Do the same for default preferences
+        preferencesToCheck = self.defaultConfig['preferences'].keys()
+        preferenceKeys = self.config['preferences'].keys()
+        for property in preferencesToCheck:
+            if property not in preferenceKeys:
+                self.config['preferences'][property] = self.defaultConfig['preferences'][property]
 
     # Make sure that the given preference is actually something that we want to store
     def __ensureValidPreference(self, preferenceName):
@@ -86,6 +95,13 @@ class ConfigManager:
 
     def instances(self):
         return self.config['instances']
+
+    def getInstance(self, instanceName):
+        matchingInstances = [i for i in self.config['instances'] if i['name'] == instanceName]
+        if len(matchingInstances) == 0:
+            return None
+        else:
+            return matchingInstances[0]
 
     def getSnapshot(self, snapshotName):
         matchingSnapshots = [s for s in self.snapshots if s['name'] == snapshotName]
