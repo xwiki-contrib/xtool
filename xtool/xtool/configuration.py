@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import os.path
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 from environment import Environment
 from packaging import version
@@ -32,6 +34,14 @@ class ConfigManager:
     def __init__(self):
         self.__ensureExistingFolders()
         self.__loadConfig()
+
+        self.observer = Observer()
+        self.observer.schedule(ConfigurationUpdateHandler(self), Environment.configFilePath)
+        self.observer.start()
+
+    def __del__(self):
+        self.observer.stop()
+        self.observer.join()
 
     def __ensureExistingFolders(self):
         foldersToCheck = [Environment.configDir, Environment.dataDir,
@@ -76,7 +86,7 @@ class ConfigManager:
             self.config = self.defaultConfig
             self.__saveConfig()
         else:
-            with open(Environment.configFilePath, 'r+') as configFile:
+            with open(Environment.configFilePath, 'r') as configFile:
                 self.config = json.load(configFile)
                 self.__ensureExistingProperties()
                 self.logger.debug(self.config)
@@ -89,6 +99,10 @@ class ConfigManager:
         dumps = json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': '))
         with open(Environment.configFilePath, 'w+') as configFile:
             configFile.write(dumps)
+
+    def reload(self):
+        self.logger.debug('Reloading configuration')
+        self.__loadConfig()
 
     def versions(self):
         return self.config['versions']
@@ -141,3 +155,12 @@ class ConfigManager:
         self.config['instances'] = sorted(self.config['instances'], key=lambda x: x['name'])
 
         self.__saveConfig()
+
+
+class ConfigurationUpdateHandler(FileSystemEventHandler):
+    def __init__(self, configManager):
+        super().__init__()
+        self.configManager = configManager
+
+    def on_modified(self, event):
+        self.configManager.reload()
