@@ -20,7 +20,7 @@ class InstanceManager:
         self.versionManager = versionManager
 
     def getInstancePath(self, instanceName):
-        return '{}/{}'.format(Environment.instancesDir, instanceName)
+        return os.path.abspath('{}/{}'.format(Environment.instancesDir, instanceName))
 
     def list(self):
         # Sort the instances by version
@@ -33,18 +33,17 @@ class InstanceManager:
             print('  - {}'.format(instance['name']))
 
     def linkInstanceToVersion(self, instanceName, instancePath, versionPath):
-        self.logger.info('Symlinking the instance [{}] in order to reduce storage space'.format(instanceName))
+        self.logger.info('Symlinking the instance [{}]'.format(instanceName))
         # Go through each file that is present in the instancePath and that has a linkable extension ;
         # Check if an equivalent exists in the versionPath.
         # If an equivalent exists and has the same md5sum, remove the jar from the instance and replace it with a
         # symlink to the version
-        absoluteInstancePath = os.path.abspath(instancePath)
         for linkableFileExtension in self.configManager.get('linkableFileExtensions'):
             for file in glob.glob('{}/**/*.{}'.format(instancePath, linkableFileExtension), recursive=True):
                 if not os.path.isdir(file):
                     # Compute the file absolute
                     absoluteFilePath = os.path.abspath(file)
-                    relativeFilePath = absoluteFilePath[len(absoluteInstancePath)+1:]
+                    relativeFilePath = absoluteFilePath[len(instancePath)+1:]
                     versionFilePath = '{}/{}'.format(versionPath, relativeFilePath)
 
                     if (os.path.exists(versionFilePath)
@@ -55,16 +54,33 @@ class InstanceManager:
                         os.remove(absoluteFilePath)
                         os.symlink(versionFilePath, absoluteFilePath)
 
-    def symlink(self, instanceName):
+    def unlinkInstanceFromVersion(self, instanceName, instancePath, versionPath):
+        self.logger.info('Unlinking the instance [{}] from its version [{}]'.format(instanceName, versionPath))
+
+        for file in glob.glob('{}/**/*.*'.format(instancePath), recursive=True):
+            if (os.path.islink(file) and os.readlink(file).startswith(versionPath)):
+                versionFile = os.readlink(file)
+                # Undo the link
+                self.logger.debug('Undoing symlink from [{}] to [{}]'.format(file, versionFile))
+                os.remove(file)
+                shutil.copy2(versionFile, file, follow_symlinks=True)
+
+    def symlink(self, instanceName, undo=False):
         instance = self.configManager.getInstance(instanceName)
         if (instance is None):
             self.logger.error('The instance with name [{}] does not exist.', instanceName)
         else:
             self.versionManager.ensureVersion(instance['version'])
-            self.linkInstanceToVersion(instanceName,
-                                       self.getInstancePath(instanceName),
-                                       self.versionManager.getDirectoryPath(instance['version']))
-            self.logger.info('The instance with name [{}] has been symlinked'.format(instanceName))
+            if not undo:
+                self.linkInstanceToVersion(instanceName,
+                                           self.getInstancePath(instanceName),
+                                           self.versionManager.getDirectoryPath(instance['version']))
+                self.logger.info('The instance with name [{}] has been symlinked'.format(instanceName))
+            else:
+                self.unlinkInstanceFromVersion(instanceName,
+                                               self.getInstancePath(instanceName),
+                                               self.versionManager.getDirectoryPath(instance['version']))
+                self.logger.info('The instance with name [{}] has been unlinked'.format(instanceName))
 
     def create(self, instanceName, version):
         # Check if the name is not already taken

@@ -84,6 +84,12 @@ class InstanceParser(Parser):
                 action='store_true',
                 help='symlink all instances'
             )
+            symlinkParser.add_argument(
+                '-u',
+                '--undo',
+                action='store_true',
+                help='undo linking an instance to a version'
+            )
 
     """
     See Parsers#handleArgs()
@@ -111,8 +117,8 @@ class InstanceParser(Parser):
         elif (action in ['symlink', 'sym']):
             if args.all:
                 for instance in self.configManager.instances():
-                    self.instanceManager.symlink(instance['name'])
+                    self.instanceManager.symlink(instance['name'], args.undo)
             elif args.instance is not None:
-                self.instanceManager.symlink(args.instance)
+                self.instanceManager.symlink(args.instance, args.undo)
             else:
                 self.logger.error('Unable to determine the instance to symlink.')

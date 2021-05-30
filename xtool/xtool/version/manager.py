@@ -36,10 +36,10 @@ class VersionManager:
 
     # Generate the file path used for a given version
     def getArchivePath(self, version):
-        return '{}/{}'.format(Environment.dataDir, self.getArchiveName(version))
+        return os.path.abspath('{}/{}'.format(Environment.dataDir, self.getArchiveName(version)))
 
     def getDirectoryPath(self, version):
-        return '{}/{}'.format(Environment.dataDir, self.getVersionBaseName(version))
+        return os.path.abspath('{}/{}'.format(Environment.dataDir, self.getVersionBaseName(version)))
 
     def ensureVersion(self, version):
         if not self.hasVersion(version):
