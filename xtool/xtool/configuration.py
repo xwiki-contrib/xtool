@@ -25,7 +25,7 @@ class ConfigManager:
         'preferences': {
             'editor': None,
             'debug': False,
-            'linkInstanceStorage': True,
+            'linkInstanceStorage': False,
             'snapshot-format': 'xztar',
             'linkableFileExtensions': ['jar', 'xar', 'xed', 'vm', 'js', 'css', 'less', 'png', 'gif', 'ttf', 'ttc']
         }
