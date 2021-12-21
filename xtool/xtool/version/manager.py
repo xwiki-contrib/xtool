@@ -1,6 +1,7 @@
 import logging
 import os
 from packaging import version as Version
+import shutil
 import zipfile
 
 from environment import Environment
@@ -50,6 +51,16 @@ class VersionManager:
         if os.path.exists(self.getArchivePath(version)):
             os.remove(self.getArchivePath(version))
 
+    def removeVersionDirectory(self, version):
+        if os.path.exists(self.getDirectoryPath(version)):
+            shutil.rmtree(self.getDirectoryPath(version))
+
+    def removeVersion(self, version):
+        self.removeVersionArchive(version)
+        self.removeVersionDirectory(version)
+        self.configManager.versions().remove(version)
+        self.configManager.persist()
+
     def extractVersion(self, version):
         self.logger.debug('Unzipping version {} in {}'.format(version, Environment.dataDir))
         zipRef = zipfile.ZipFile(self.getArchivePath(version), 'r')
@@ -96,3 +107,15 @@ class VersionManager:
                 self.configManager.versions().append(version)
                 self.configManager.persist()
                 self.logger.info('Version {} successfully downloaded!'.format(version))
+
+    def prune(self):
+        unusedVersions = self.configManager.versions()[:]
+
+        for instance in self.configManager.instances():
+            self.logger.debug('Checking instance [{}]'.format(instance['name']))
+            if instance['version'] in unusedVersions:
+                unusedVersions.remove(instance['version'])
+
+        for unusedVersion in unusedVersions:
+            self.logger.info('Removing unused version [{}]'.format(unusedVersion))
+            self.removeVersion(unusedVersion)
