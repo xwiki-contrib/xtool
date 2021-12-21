@@ -55,7 +55,8 @@ class VersionManager:
         if os.path.exists(self.getDirectoryPath(version)):
             shutil.rmtree(self.getDirectoryPath(version))
 
-    def removeVersion(self, version):
+    def remove(self, version):
+        self.logger.info('Removing version {} …'.format(version))
         self.removeVersionArchive(version)
         self.removeVersionDirectory(version)
         self.configManager.versions().remove(version)
@@ -117,5 +118,4 @@ class VersionManager:
                 unusedVersions.remove(instance['version'])
 
         for unusedVersion in unusedVersions:
-            self.logger.info('Removing unused version [{}]'.format(unusedVersion))
-            self.removeVersion(unusedVersion)
+            self.remove(unusedVersion)
