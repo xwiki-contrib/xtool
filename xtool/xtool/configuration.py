@@ -27,7 +27,7 @@ class ConfigManager:
             'debug': False,
             'linkInstanceStorage': False,
             'snapshot-format': 'xztar',
-            'linkableFileExtensions': ['jar', 'xar', 'xed', 'vm', 'js', 'css', 'less', 'png', 'gif', 'ttf', 'ttc']
+            'linkableFileExtensions': ['jar', 'xar', 'vm', 'js', 'css', 'less', 'png', 'gif', 'ttf', 'ttc']
         }
     }
 
