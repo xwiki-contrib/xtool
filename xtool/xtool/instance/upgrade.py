@@ -52,9 +52,9 @@ class UpgradeManager:
                     tempInstancePath = self.instanceManager.getInstancePath(tempInstanceName)
 
                     # Remove the old instance folder, replace it with a pristine version
+                    self.instanceManager.remove(instanceName)
+                    self.instanceManager.create(instanceName, newVersion)
                     instancePath = self.instanceManager.getInstancePath(instanceName)
-                    shutil.rmtree(instancePath)
-                    self.instanceManager.extractVersion(newVersion, instancePath)
 
                     # Copy configuration files, if needed, warn the user that there are some conflicts
                     # For now, we do not handle conflict resolution
@@ -73,12 +73,8 @@ class UpgradeManager:
                     shutil.rmtree('{}/data'.format(instancePath))
                     shutil.copytree('{}/data'.format(tempInstancePath), '{}/data'.format(instancePath))
 
-                    # Remove the temporary instance instance
+                    # Remove the temporary instance
                     self.instanceManager.remove(tempInstanceName)
-
-                    # Mark the upgraded instance as upgraded
-                    matchingInstances[0]['version'] = newVersion
-                    self.configManager.persist()
                 else:
                     self.logger.error(
                         'Not upgrading instance [{}] as version [{}] could not be found in local repository'
