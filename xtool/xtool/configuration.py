@@ -80,20 +80,21 @@ class ConfigManager:
             self.logger.info('No configuration directory found, creating {}.'.format(baseConfigDir))
             os.makedirs(baseConfigDir)
 
-        if not os.path.isfile(Environment.configFilePath):
+        if os.path.isfile(Environment.configFilePath):
+            with open(Environment.configFilePath, 'r') as configFile:
+                self.config = json.load(configFile)
+        else:
             self.logger.info(
                     'No configuration file found, creating a new one in {}.'.format(Environment.configFilePath))
             self.config = self.defaultConfig
             self.__saveConfig()
-        else:
-            with open(Environment.configFilePath, 'r') as configFile:
-                self.config = json.load(configFile)
-                self.__ensureExistingProperties()
-                self.logger.debug(self.config)
-                # Create local snapshots
-                self.snapshots = []
-                for snapshot in self.config['snapshots']:
-                    self.snapshots.append(Snapshot(snapshot))
+
+        self.__ensureExistingProperties()
+        self.logger.debug(self.config)
+        # Create local snapshots
+        self.snapshots = []
+        for snapshot in self.config['snapshots']:
+            self.snapshots.append(Snapshot(snapshot))
 
     def __saveConfig(self):
         dumps = json.dumps(self.config, sort_keys=True, indent=4, separators=(',', ': '))
