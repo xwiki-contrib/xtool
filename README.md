@@ -19,7 +19,7 @@ Provide a set of tools to manage local XWiki installations
 1. Set up XTool virtual environment : 
    * `cd ~/.xtool/xtool && virtualenv -p $(which python3) venv`
    * `source venv/bin/activate`
-   * `pip install -r xtool/requirements.txt`
+   * `pip install -r requirements.txt`
 
 ## Upgrade
 
