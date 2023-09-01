@@ -38,13 +38,14 @@ class UpgradeManager:
         # - the version that we are going to is greater than the current instance version
         if len(matchingInstances) == 1:
 
-            if version.parse(matchingInstances[0]['version']) < version.parse(newVersion):
+            currentVersion = matchingInstances[0]['version']
+            if version.parse(currentVersion) < version.parse(newVersion):
                 # Download the version if it is not already in the local repository
                 self.versionManager.ensureVersion(newVersion)
 
                 if self.versionManager.hasVersion(newVersion):
-                    self.logger.info('Starting to upgrade instance [{}] to version [{}] ...'
-                                     .format(instanceName, newVersion))
+                    self.logger.info('Starting to upgrade instance [{}] from version [{}] to version [{}] ...'
+                                     .format(instanceName, currentVersion, newVersion))
                     # Actually start the upgrade
                     # Create a random suffixed instance name
                     tempInstanceName = '{}-{}'.format(instanceName, random_chars(4))
@@ -81,7 +82,7 @@ class UpgradeManager:
                         .format(instanceName, newVersion))
             else:
                 self.logger.error(
-                    'Not upgrading instance [{}] as version [{}] is lower than the version currently used'
-                    .format(instanceName, newVersion))
+                    'Not upgrading instance [{}] as version [{}] is lower than the version currently used ([{}])'
+                    .format(instanceName, newVersion, currentVersion))
         else:
             self.logger.error('The instance name [{}] is invalid'.format(instanceName))
