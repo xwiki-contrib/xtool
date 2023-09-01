@@ -51,6 +51,8 @@ class InstanceParser(Parser):
             upgradeParser.add_argument('instance_name', help='the name of the instance to upgrade')
             upgradeParser.add_argument('version', help='the version to which the instance should be upgraded')
 
+            upgradeParser.add_argument('-f', '--force', action='store_true', help='force upgrade without checking versions (use this to upgrade to a SNAPSHOT version)')
+
             # Edit action
             editParser = subParsers.add_parser(
                 'edit',
@@ -107,7 +109,7 @@ class InstanceParser(Parser):
             else:
                 self.logger.error('Unable to determine the name of the instance to start.')
         elif action in ['upgrade', 'u']:
-            self.upgradeManager.upgrade(args.instance_name, args.version)
+            self.upgradeManager.upgrade(args.instance_name, args.version, args.force)
         elif action in ['edit', 'e']:
             self.instanceManager.edit(args.instance_name, args.file)
         elif action in ['copy', 'cp']:

@@ -28,7 +28,7 @@ class UpgradeManager:
             shutil.copyfile(originalFilePath, suffixedFilePath)
             self.logger.info('Created copy of the original file in [{}]'.format(suffixedFilePath))
 
-    def upgrade(self, instanceName, newVersion):
+    def upgrade(self, instanceName, newVersion, force):
         # Get the instance
         matchingInstances = [i for i in self.configManager.instances() if i['name'] == instanceName]
 
@@ -39,11 +39,17 @@ class UpgradeManager:
         if len(matchingInstances) == 1:
 
             currentVersion = matchingInstances[0]['version']
-            if version.parse(currentVersion) < version.parse(newVersion):
+            if force or version.parse(currentVersion) < version.parse(newVersion):
                 # Download the version if it is not already in the local repository
                 self.versionManager.ensureVersion(newVersion)
 
                 if self.versionManager.hasVersion(newVersion):
+                    if "SNAPSHOT" not in currentVersion and "SNAPSHOT" in newVersion:
+                        self.logger.info("Note: when upgrading to a SNAPSHOT version, you might need to uncomment this in xwiki.properties:")
+                        self.logger.info("---")
+                        self.logger.info("extension.repositories = maven-xwiki-snapshot:maven:https://nexus.xwiki.org/nexus/content/groups/public-snapshots")
+                        self.logger.info("---")
+
                     self.logger.info('Starting to upgrade instance [{}] from version [{}] to version [{}] ...'
                                      .format(instanceName, currentVersion, newVersion))
                     # Actually start the upgrade
@@ -80,6 +86,10 @@ class UpgradeManager:
                     self.logger.error(
                         'Not upgrading instance [{}] as version [{}] could not be found in local repository'
                         .format(instanceName, newVersion))
+            elif "SNAPSHOT" in newVersion:
+                self.logger.error(
+                    'Not upgrading instance [{}] to snapshot version [{}]. Please use --force to force this upgrade.'
+                    .format(instanceName, newVersion))
             else:
                 self.logger.error(
                     'Not upgrading instance [{}] as version [{}] is lower than the version currently used ([{}])'
