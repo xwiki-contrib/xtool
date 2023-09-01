@@ -43,6 +43,12 @@ class UpgradeManager:
                 self.versionManager.ensureVersion(newVersion)
 
                 if self.versionManager.hasVersion(newVersion):
+                    if "SNAPSHOT" not in currentVersion and "SNAPSHOT" in newVersion:
+                        self.logger.info("Note: when upgrading to a SNAPSHOT version, you might need to uncomment this in xwiki.properties:")
+                        self.logger.info("---")
+                        self.logger.info("extension.repositories = maven-xwiki-snapshot:maven:https://nexus.xwiki.org/nexus/content/groups/public-snapshots")
+                        self.logger.info("---")
+
                     self.logger.info('Starting to upgrade instance [{}] from version [{}] to version [{}] ...'
                                      .format(instanceName, currentVersion, newVersion))
                     # Actually start the upgrade
