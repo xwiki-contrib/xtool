@@ -3,7 +3,6 @@ import logging
 import shutil
 
 from os.path import basename
-from packaging import version
 
 from utils import random_chars
 
@@ -39,7 +38,7 @@ class UpgradeManager:
         if len(matchingInstances) == 1:
 
             currentVersion = matchingInstances[0]['version']
-            if version.parse(currentVersion) < version.parse(newVersion):
+            if self.versionManager.isLowerThan(currentVersion, newVersion):
                 # Download the version if it is not already in the local repository
                 self.versionManager.ensureVersion(newVersion)
 

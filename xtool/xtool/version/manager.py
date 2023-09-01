@@ -1,6 +1,7 @@
 import logging
 import os
 from packaging import version as Version
+import re
 import shutil
 import zipfile
 
@@ -85,6 +86,18 @@ class VersionManager:
 
     def hasVersion(self, version):
         return version in self.configManager.versions()
+
+    def _normalizedVersion(self, version):
+        # Convince packaging.version to like our Java versions
+        # by replacing SNAPSHOT with a, and some dashes to dots.
+        return Version.parse(re.sub(r"([0-9])-([0-9])", r"\1.\2", version.replace("SNAPSHOT", "a")))
+
+    def isLowerThan(self, current, new):
+        if new.endswith("-SNAPSHOT") and current == new:
+            # Assume -SNAPSHOT is newer than itself (to upgrade a SNAPSHOT instance the next day for example)
+            return True
+
+        return self._normalizedVersion(current) < self._normalizedVersion(new)
 
     def download(self, version):
         # First, check that we have a version already registered
