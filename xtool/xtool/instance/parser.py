@@ -48,6 +48,11 @@ class InstanceParser(Parser):
                 aliases=['u'],
                 help='upgrade an existing instance to a newer version'
             )
+            upgradeParser.add_argument(
+                '-k', '--keepconf',
+                action='store_true',
+                help='keep configuration files (new versions will be stored with a .new suffix)'
+            )
             upgradeParser.add_argument('instance_name', help='the name of the instance to upgrade')
             upgradeParser.add_argument('version', help='the version to which the instance should be upgraded')
 
@@ -109,7 +114,7 @@ class InstanceParser(Parser):
             else:
                 self.logger.error('Unable to determine the name of the instance to start.')
         elif action in ['upgrade', 'u']:
-            self.upgradeManager.upgrade(args.instance_name, args.version, args.force)
+            self.upgradeManager.upgrade(args.instance_name, args.version, args.force, args.keepconf)
         elif action in ['edit', 'e']:
             self.instanceManager.edit(args.instance_name, args.file)
         elif action in ['copy', 'cp']:
