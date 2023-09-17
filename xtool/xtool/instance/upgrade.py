@@ -16,19 +16,26 @@ class UpgradeManager:
         self.versionManager = versionManager
         self.instanceManager = instanceManager
 
-    def __copyAndCompareFiles(self, originalFilePath, newFilePath):
+    def __copyAndCompareFiles(self, originalFilePath, newFilePath, keepconf):
         configFileName = basename(newFilePath)
         if filecmp.cmp(originalFilePath, newFilePath, shallow=False):
             self.logger.info('Configuration file [{}] do not need to be updated'.format(configFileName))
         else:
             self.logger.info('Configuration file [{}] needs to be updated'.format(configFileName))
 
-            # Copy the old file in the same dir as the old one, with a suffix
-            suffixedFilePath = '{}.orig'.format(newFilePath)
-            shutil.copyfile(originalFilePath, suffixedFilePath)
-            self.logger.info('Created copy of the original file in [{}]'.format(suffixedFilePath))
+            if keepconf:
+                # Copy the old file in the same dir as the old one, with a suffix
+                suffixedFilePath = '{}.new'.format(newFilePath)
+                shutil.copyfile(newFilePath, suffixedFilePath)
+                shutil.copyfile(originalFilePath, newFilePath)
+                self.logger.info('Created copy of the original file in [{}]'.format(suffixedFilePath))
+            else:
+                # Copy the old file in the same dir as the old one, with a suffix
+                suffixedFilePath = '{}.orig'.format(newFilePath)
+                shutil.copyfile(originalFilePath, suffixedFilePath)
+                self.logger.info('Stored the new version of the file in [{}]'.format(suffixedFilePath))
 
-    def upgrade(self, instanceName, newVersion, force):
+    def upgrade(self, instanceName, newVersion, force, keepconf):
         # Get the instance
         matchingInstances = [i for i in self.configManager.instances() if i['name'] == instanceName]
 
@@ -68,13 +75,16 @@ class UpgradeManager:
                     # TODO: Refactor
                     self.__copyAndCompareFiles(
                         '{}/webapps/xwiki/WEB-INF/xwiki.cfg'.format(tempInstancePath),
-                        '{}/webapps/xwiki/WEB-INF/xwiki.cfg'.format(instancePath))
+                        '{}/webapps/xwiki/WEB-INF/xwiki.cfg'.format(instancePath),
+                        keepconf)
                     self.__copyAndCompareFiles(
                         '{}/webapps/xwiki/WEB-INF/xwiki.properties'.format(tempInstancePath),
-                        '{}/webapps/xwiki/WEB-INF/xwiki.properties'.format(instancePath))
+                        '{}/webapps/xwiki/WEB-INF/xwiki.properties'.format(instancePath),
+                        keepconf)
                     self.__copyAndCompareFiles(
                         '{}/webapps/xwiki/WEB-INF/hibernate.cfg.xml'.format(tempInstancePath),
-                        '{}/webapps/xwiki/WEB-INF/hibernate.cfg.xml'.format(instancePath))
+                        '{}/webapps/xwiki/WEB-INF/hibernate.cfg.xml'.format(instancePath),
+                        keepconf)
 
                     # Copy the perm dir
                     shutil.rmtree('{}/data'.format(instancePath))
